@@ -1,18 +1,180 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <Head></Head>
+    <div id="wrapper">
+      <i><h3>Safe travel amid pandemic</h3></i>
+      <div class="card-row">
+    <div v-for="(card, index) in cards"
+        :key="index"
+        :ref="`card_${index}`"
+        @mouseover="hoverCard(index)"
+        @mouseout="hoverCard(-1)"
+        class="card">
+
+      <img class="card-image"
+        :class="{'selected': isSelected(index)}"
+        :src="card.image">
+
+      <div class="card-footer">
+        <h3 class="card-title">{{card.title}}</h3>
+        <p class="card-text">for
+          <span
+            class="card-author"
+            :class="{'selected': isSelected(index)}">
+                {{card.author}}
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+    </div>
+  <div id="footerDiv">
+    <Footer></Footer>
+  </div>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
+import Head from '@/components/header'
+import Footer from '@/components/footer'
 
 export default {
-  name: 'Home',
+  // name: 'Home',
+  data () {
+    return {
+      selectedCard: -1,
+      cards: [
+        {
+          title: 'WHO',
+          author: 'Global SC deployment & management',
+          image: 'http://www.gstatic.com/webp/gallery/1.webp'
+        },
+        {
+          title: 'Country',
+          author: 'Country-level SC deployment & management',
+          image: 'https://www.gstatic.com/webp/gallery3/2_webp_ll.png'
+        },
+        {
+          title: 'Testing Center',
+          author: 'Administer testing and vaccination',
+          image: 'https://www.gstatic.com/webp/gallery3/1.png'
+        },
+        {
+          title: 'Patient',
+          author: 'Data ownership & Management',
+          image: 'https://cdn.pixabay.com/photo/2018/04/18/14/01/blockchain-3330531__340.jpg'
+        },
+        {
+          title: 'Loading...',
+          author: 'Yet to come',
+          image: 'http://www.gstatic.com/webp/gallery/1.webp'
+        }
+      ]
+    }
+  },
   components: {
-    HelloWorld
+    Head,
+    Footer
+  },
+  created () {
+
+  },
+  methods: {
+    hoverCard (selectedIndex) {
+      this.selectedCard = selectedIndex
+    },
+    isSelected (cardIndex) {
+      return this.selectedCard === cardIndex
+    }
+  },
+  computed: {
+
   }
 }
 </script>
+
+<style scoped>
+#wrapper{
+  margin: 2em 10em;
+}
+
+body {
+    background-color: #E1E7E7;
+  }
+
+  .card-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 780px;
+    width: 100%;
+    height: 450px;
+  }
+
+  .card {
+    position: relative;
+    background-color: #FFFFFF;
+    height: 370px;
+    width: 240px;
+    margin: 10px;
+    overflow: hidden;
+    box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.5);
+  }
+
+  .card-image {
+    /* center horizontally overflown image */
+    position: absolute;
+    left: -9999px;
+    right: -9999px;
+    margin: auto;
+
+    height: 220px;
+    min-width: 100%;
+
+    transition: height 0.3s, opacity 0.3s;
+  }
+  .card-image.selected {
+    height: 410px;
+    opacity: 0.3;
+  }
+
+  .card-footer {
+    position: absolute;
+    bottom: 0;
+    height: 130px;
+    padding: 10px 15px;
+    font-family: Helvetica;
+  }
+  .card-text {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.7);
+  }
+  .card-title {
+    font-family: Serif;
+  }
+  .card-author {
+    font-size: 14px;
+    color: #BAB096;
+    transition: color 0.3s;
+  }
+  .card-author.selected {
+    color: #6a6456;
+  }
+  .card {
+    /* the other rules */
+    transition: height 0.3s, box-shadow 0.3s;
+  }
+  .card:hover {
+    height: 410px;
+    box-shadow: 20px 20px 40px 0px rgba(0,0,0,0.5);
+  }
+
+#footerDiv {
+  position: absolute;
+  top: 39em;
+  left: 0;
+  width: 100%;
+  height: 14%;
+}
+</style>
