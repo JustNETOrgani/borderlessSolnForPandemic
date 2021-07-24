@@ -9,8 +9,13 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home
-  }
+  },
   // Contract Delployer = WHO.
+  {
+    path: '/WHO/login',
+    name: 'WHOlogin',
+    component: () => import('@/views/WHO/login.vue')
+  }
 
   // Health facility.
 
