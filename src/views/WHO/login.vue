@@ -1,5 +1,5 @@
 <template>
-  <div class="home">
+  <div class="home" :style="image" id="bgImage">
     <div id="topNav">
         <el-link icon="el-icon-arrow-left" style="font-size:17px;float:left;" @click="BackToPrvPage">Previous</el-link>
     </div>
@@ -24,6 +24,8 @@
 import ethEnabled from '@/assets/js/web3nMetaMask'
 import web3 from '@/assets/js/web3Only'
 import { ABI, contractAddress, suppliedGas } from '@/assets/js/ABIs/WHO_ABI'
+// Import image.
+// import Bg2 from '@/../assets/images/logo2.png'
 
 export default {
   // name: 'Home',
@@ -31,7 +33,9 @@ export default {
     return {
       userAddr: null,
       // Loading states
-      metaMaskLoginBtn: false
+      metaMaskLoginBtn: false,
+      // Background image.
+      image: { backgroundImage: 'url(https://user-images.githubusercontent.com/44321289/126866665-df357418-f483-4f8a-8a35-220f38f431fc.jpg)' }
     }
   },
   components: {
@@ -105,19 +109,25 @@ export default {
 <style scoped>
 .home {
   height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
+#bgImage {
+        background-repeat: no-repeat;
+        background-size: 100% auto;
+    }
 #topNav{
   width: 100%;
   height: 5%;
 }
 #loginWrapper{
-  margin: 20% 40%;
+  margin: 5% 40%;
   width: 20%;
   padding: 1rem 1.5rem;
 }
 legend {
  font-style: italic;
+ color: rgb(245, 233, 233);
 }
 </style>
