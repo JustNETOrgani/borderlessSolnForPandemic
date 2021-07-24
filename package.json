@@ -8,6 +8,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@vue/compiler-sfc": "^3.0.5",
     "core-js": "^3.6.5",
     "element-ui": "^2.14.1",
     "ipfs-only-hash": "^4.0.0",
