@@ -131,25 +131,6 @@ var ABI = [
   {
     inputs: [
       {
-        internalType: 'address',
-        name: '_addrOfCountry',
-        type: 'address'
-      }
-    ],
-    name: 'getCountryIPFShasForTCs',
-    outputs: [
-      {
-        internalType: 'string',
-        name: '',
-        type: 'string'
-      }
-    ],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [
-      {
         internalType: 'string',
         name: '_nameOfCountry',
         type: 'string'
@@ -279,6 +260,25 @@ var ABI = [
       }
     ],
     stateMutability: 'nonpayable',
+    type: 'function'
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_addrOfCountry',
+        type: 'address'
+      }
+    ],
+    name: 'verificationTime',
+    outputs: [
+      {
+        internalType: 'string',
+        name: '',
+        type: 'string'
+      }
+    ],
+    stateMutability: 'view',
     type: 'function'
   }
 ]

@@ -12,9 +12,10 @@ contract WHOsc {
 		stateOfCountry cState; // State of the country.
     }
 	
-	enum stateOfCountry {Holding, Activated, ReActivated, Revoked} // States that countries can be. 
+	enum stateOfCountry {Holding, Activated, Revoked} // States that countries can be. 
  
     address WHOdir; // Contract deployer = WHO.
+    uint256 numOfCountriesRegistered; // Total registered countries.
     // Mappings.
     mapping (address => registeredCountry)  public country; // Mapping for registered countries.
 	
@@ -31,6 +32,7 @@ contract WHOsc {
     constructor() {
         WHOdir = msg.sender;
 		stateOfTheCountry = stateOfCountry.Holding;
+		numOfCountriesRegistered = 0;
     }
     //Creating an access modifier for contractDeployer
     modifier WHO {
@@ -51,6 +53,7 @@ contract WHOsc {
     // Function to register a country.
     function registerCountry(string memory _bcType, string memory _nameOfCountry,address _addrOfCountry, string memory _IPFShash) WHO public returns (bool){
         country[_addrOfCountry] = registeredCountry(_nameOfCountry, _bcType, _addrOfCountry, _IPFShash, stateOfCountry.Activated);
+        numOfCountriesRegistered +=1;
         emit countryRegistered(_addrOfCountry, _nameOfCountry); // Emit event on registeration of a country. 
         return true;
     }
@@ -59,6 +62,7 @@ contract WHOsc {
         // AA checks
         require (country[_addrOfCountry].addrOfSC == _addrOfCountry, "Address of country mismatch");
         require (keccak256(abi.encodePacked(country[_addrOfCountry].nameOfCountry)) == keccak256(abi.encodePacked(_nameOfCountry)), "Name of country mismatch");
+        require (keccak256(abi.encodePacked(country[_addrOfCountry].IPFShash)) != keccak256(abi.encodePacked(_newIPFShash)), "IPFS hash already exist");
         country[_addrOfCountry].IPFShash = _newIPFShash;
         emit countryTCsUpdated(_addrOfCountry);
         return true;
@@ -77,13 +81,14 @@ contract WHOsc {
     function reactivateCountry(string memory _nameOfCountry,address _addrOfCountry, string memory reason) WHO public returns (bool){
 		require (country[_addrOfCountry].addrOfSC == _addrOfCountry, "Address of country mismatch");
 		require (keccak256(abi.encodePacked(country[_addrOfCountry].nameOfCountry)) == keccak256(abi.encodePacked(_nameOfCountry)), "Name of country mismatch");
-        country[_addrOfCountry].cState = stateOfCountry.ReActivated;
+        country[_addrOfCountry].cState = stateOfCountry.Activated;
         emit countryReActivated(_addrOfCountry, reason); // Emit event on revoke of country. 
         return true;
     }
     
      // Function for country verification at Patient verification time.
-    function getCountryIPFShasForTCs(address _addrOfCountry) public view returns (string memory) {
+    function verificationTime(address _addrOfCountry) public view returns (string memory) {
+        require (country[_addrOfCountry].cState == stateOfCountry.Activated, "Country either not listed or revoked");
         return country[_addrOfCountry].IPFShash;
     }
 }
