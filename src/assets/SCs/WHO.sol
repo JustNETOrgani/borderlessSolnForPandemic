@@ -8,7 +8,7 @@ contract WHOsc {
         string nameOfCountry; // Name of the Country.
         string bcType; // Blockchain type in use by the country.
         address addrOfSC; // Blockchain address of SC deployed by Country.
-        bytes32 IPFShash; // IPFS hash of Country's TCs.
+        string IPFShash; // IPFS hash of Country's TCs.
 		stateOfCountry cState; // State of the country.
     }
 	
@@ -37,15 +37,25 @@ contract WHOsc {
      require(msg.sender == WHOdir);
      _;
      }
+     
+    // Function to authenticate WHO login via MetaMask.
+    function checkWHOaddr() public view returns (bool) {
+        if (msg.sender == WHOdir) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
     // Function to register a country.
-    function registerCountry(string memory _bcType, string memory _nameOfCountry,address _addrOfCountry, bytes32 _IPFShash) WHO public returns (bool){
+    function registerCountry(string memory _bcType, string memory _nameOfCountry,address _addrOfCountry, string memory _IPFShash) WHO public returns (bool){
         country[_addrOfCountry] = registeredCountry(_nameOfCountry, _bcType, _addrOfCountry, _IPFShash, stateOfCountry.Activated);
         emit countryRegistered(_addrOfCountry, _nameOfCountry); // Emit event on registeration of a country. 
         return true;
     }
     // Function to update IPFS hash containing country's TCs.
-    function updateCountryTCs(string memory _nameOfCountry,address _addrOfCountry, bytes32 _newIPFShash) WHO public returns (bool result){
+    function updateCountryTCs(string memory _nameOfCountry,address _addrOfCountry, string memory _newIPFShash) WHO public returns (bool result){
         // AA checks
         require (country[_addrOfCountry].addrOfSC == _addrOfCountry, "Address of country mismatch");
         require (keccak256(abi.encodePacked(country[_addrOfCountry].nameOfCountry)) == keccak256(abi.encodePacked(_nameOfCountry)), "Name of country mismatch");
@@ -73,7 +83,7 @@ contract WHOsc {
     }
     
      // Function for country verification at Patient verification time.
-    function getCountryIPFShasForTCs(address _addrOfCountry) public view returns (bytes32) {
+    function getCountryIPFShasForTCs(address _addrOfCountry) public view returns (string memory) {
         return country[_addrOfCountry].IPFShash;
     }
 }
