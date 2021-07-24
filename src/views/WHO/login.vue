@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <div id="topNav">
-        <el-link icon="el-icon-arrow-left" style="font-size:17px;float:left;" @click="logOut">Log out</el-link>
+        <el-link icon="el-icon-arrow-left" style="font-size:17px;float:left;" @click="BackToPrvPage">Previous</el-link>
     </div>
     <div id="loginWrapper">
       <el-row>
@@ -92,7 +92,7 @@ export default {
         }
       })
     },
-    logOut () {
+    BackToPrvPage () {
       this.$router.push('/')
     }
   },
