@@ -16,6 +16,7 @@ contract WHOsc {
  
     address WHOdir; // Contract deployer = WHO.
     uint256 numOfCountriesRegistered; // Total registered countries.
+    
     // Mappings.
     mapping (address => registeredCountry)  public country; // Mapping for registered countries.
 	
@@ -34,6 +35,7 @@ contract WHOsc {
 		stateOfTheCountry = stateOfCountry.Holding;
 		numOfCountriesRegistered = 0;
     }
+    
     //Creating an access modifier for contractDeployer
     modifier WHO {
      require(msg.sender == WHOdir);
@@ -57,6 +59,7 @@ contract WHOsc {
         emit countryRegistered(_addrOfCountry, _nameOfCountry); // Emit event on registeration of a country. 
         return true;
     }
+    
     // Function to update IPFS hash containing country's TCs.
     function updateCountryTCs(string memory _nameOfCountry,address _addrOfCountry, string memory _newIPFShash) WHO public returns (bool result){
         // AA checks
@@ -90,5 +93,10 @@ contract WHOsc {
     function verificationTime(address _addrOfCountry) public view returns (string memory) {
         require (country[_addrOfCountry].cState == stateOfCountry.Activated, "Country either not listed or revoked");
         return country[_addrOfCountry].IPFShash;
+    }
+    
+    // Function to get total number of countries registered.
+    function totalRegisteredCountries() public view returns (uint256) {
+        return numOfCountriesRegistered;
     }
 }
