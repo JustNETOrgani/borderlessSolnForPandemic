@@ -13,7 +13,7 @@
 
       <img class="card-image"
         :class="{'selected': isSelected(index)}"
-        :src="card.image">
+        :src="card.image" @click="LinkRedirect(index)">
 
       <div class="card-footer">
         <h3 class="card-title">{{card.title}}</h3>
@@ -48,22 +48,22 @@ export default {
         {
           title: 'WHO',
           author: 'Global SC deployment & management',
-          image: 'http://www.gstatic.com/webp/gallery/1.webp'
+          image: 'https://user-images.githubusercontent.com/44321289/126855333-febed5d8-1592-4f57-b733-f65eeb50667c.png'
         },
         {
           title: 'Country',
           author: 'Country-level SC deployment & management',
-          image: 'https://www.gstatic.com/webp/gallery3/2_webp_ll.png'
+          image: 'https://user-images.githubusercontent.com/44321289/126855857-68971ed4-05b9-4ad1-b3a2-cd4dc0627c68.png'
         },
         {
           title: 'Testing Center',
           author: 'Administer testing and vaccination',
-          image: 'https://www.gstatic.com/webp/gallery3/1.png'
+          image: 'https://user-images.githubusercontent.com/44321289/126855869-edc6c68f-6608-42c0-9443-6cf84af52a06.png'
         },
         {
           title: 'Patient',
           author: 'Data ownership & Management',
-          image: 'https://cdn.pixabay.com/photo/2018/04/18/14/01/blockchain-3330531__340.jpg'
+          image: 'https://user-images.githubusercontent.com/44321289/126855889-760d3f87-5210-4b46-94e5-4c01a2079c55.png'
         },
         {
           title: 'Loading...',
@@ -86,6 +86,23 @@ export default {
     },
     isSelected (cardIndex) {
       return this.selectedCard === cardIndex
+    },
+    LinkRedirect (selectedIndex) {
+      if (selectedIndex === 0) {
+        window.location.href = 'WHO/login'
+      }
+      if (selectedIndex === 1) {
+        console.log('2 selected')
+      }
+      if (selectedIndex === 2) {
+        console.log('3 selected')
+      }
+      if (selectedIndex === 3) {
+        console.log('4 selected')
+      }
+      if (selectedIndex === 4) {
+        console.log('5 selected')
+      }
     }
   },
   computed: {
