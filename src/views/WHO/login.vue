@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <div id="topNav">
-        <el-link icon="el-icon-arrow-left" style="font-size:17px;float:left;" @click="backToPrvPg">Previous Page</el-link>
+        <el-link icon="el-icon-arrow-left" style="font-size:17px;float:left;" @click="logOut">Log out</el-link>
     </div>
     <div id="loginWrapper">
       <el-row>
@@ -21,6 +21,9 @@
 
 <script>
 // @ is an alias to /src
+import ethEnabled from '@/assets/js/web3nMetaMask'
+import web3 from '@/assets/js/web3Only'
+import { ABI, contractAddress, suppliedGas } from '@/assets/js/ABIs/WHO_ABI'
 
 export default {
   // name: 'Home',
@@ -34,33 +37,62 @@ export default {
   components: {
   },
   created () {
-
+    if (!ethEnabled()) {
+      this.$message('Please install an Ethereum-compatible browser or extension like MetaMask to use this dApp!')
+    } else {
+      this.getAccount().then(accounts => {
+        this.currentAddress = accounts[0]
+        console.log('Current account: ', this.currentAddress)
+        this.proofTypeDialogFormVisible = true
+      })
+    }
+  },
+  watch: {
+    'currentAddress' () {
+      this.switchAccount()
+    }
   },
   methods: {
-    hoverCard (selectedIndex) {
-      this.selectedCard = selectedIndex
+    async getAccount () {
+      var accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+      return accounts
     },
-    isSelected (cardIndex) {
-      return this.selectedCard === cardIndex
+    switchAccount () {
+      var myRoot = this // Ensure all this or vue global variables can be accessed within this fucntion via myRoot.
+      window.ethereum.on('accountsChanged', function (accounts) {
+        myRoot.currentAddress = accounts[0]
+        console.log('Selected account: ', myRoot.currentAddress)
+        myRoot.$message({
+          message: 'Account switched successfully.',
+          type: 'success'
+        })
+        console.log('Account switched')
+        myRoot.accountChangeStatus = true
+      })
     },
-    LinkRedirect (selectedIndex) {
-      if (selectedIndex === 0) {
-        window.location.href('WHO/login')
-      }
-      if (selectedIndex === 1) {
-        console.log('2 selected')
-      }
-      if (selectedIndex === 2) {
-        console.log('3 selected')
-      }
-      if (selectedIndex === 3) {
-        console.log('4 selected')
-      }
-      if (selectedIndex === 4) {
-        console.log('5 selected')
-      }
+    metaMaskLogin () {
+      console.log('Attempting MetaMask login via the SC...')
+      this.metaMaskLoginBtn = true
+      var WHOsmartContract = new web3.eth.Contract(ABI, contractAddress, { defaultGas: suppliedGas })// End of ABi Code from Remix.
+      console.log('Contract instance created.')
+      // Smart contract and other logic continues.
+      WHOsmartContract.methods.checkWHOaddr().call({ from: this.currentAddress }).then(res => {
+        if (res === true) {
+          // Login success. Proceed.
+          this.$message({
+            message: 'Login success',
+            type: 'success'
+          })
+          this.metaMaskLoginBtn = false
+          this.$router.push('/WHO/WHOindex')
+        } else {
+          // Failed authentication.
+          this.$message.error('Sorry! Failed login.')
+          this.metaMaskLoginBtn = false
+        }
+      })
     },
-    backToPrvPg () {
+    logOut () {
       this.$router.push('/')
     }
   },
