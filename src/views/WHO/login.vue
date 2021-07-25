@@ -31,7 +31,8 @@ export default {
   // name: 'Home',
   data () {
     return {
-      userAddr: null,
+      currentAddress: '',
+      accountChangeStatus: false,
       // Loading states
       metaMaskLoginBtn: false,
       // Background image.
@@ -47,7 +48,6 @@ export default {
       this.getAccount().then(accounts => {
         this.currentAddress = accounts[0]
         console.log('Current account: ', this.currentAddress)
-        this.proofTypeDialogFormVisible = true
       })
     }
   },
