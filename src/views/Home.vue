@@ -92,7 +92,7 @@ export default {
         window.location.href = 'WHO/login'
       }
       if (selectedIndex === 1) {
-        console.log('2 selected')
+        window.location.href = 'Country_level/login'
       }
       if (selectedIndex === 2) {
         console.log('3 selected')

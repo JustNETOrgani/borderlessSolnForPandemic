@@ -40,6 +40,17 @@ const routes = [
     path: '/WHO/updateCountry',
     name: 'countryTcUpdate',
     component: () => import('@/views/WHO/updateCountry.vue')
+  },
+  // Country-level
+  {
+    path: '/Country_level/login',
+    name: 'countryLogin',
+    component: () => import('@/views/Country_level/login.vue')
+  },
+  {
+    path: '/Country_level/countryLanding',
+    name: 'countryIndexPage',
+    component: () => import('@/views/Country_level/countryLanding.vue')
   }
 
   // Health facility.
