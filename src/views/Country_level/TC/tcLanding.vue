@@ -144,7 +144,7 @@ export default {
       }
     },
     logOut () {
-      this.$router.push('/TC/login')
+      this.$router.push('/Country_level/TC/login')
     },
     handleOpen (key, keyPath) {
       console.log(key, keyPath)
