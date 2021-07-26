@@ -1,7 +1,7 @@
 <template>
     <div class="pageContainer">
         <div id="topNav">
-          <el-link icon="el-icon-arrow-left" style="font-size:17px;float:left;" @click="backToPrvPg">Previous Page</el-link>
+          <el-link icon="el-icon-arrow-left" style="font-size:17px;float:left;" @click="LogOut">Log out</el-link>
         </div>
         <div class="wrapper" :loading="pageLoadingState">
             <h3>Country Management Dashboard</h3>
@@ -83,7 +83,7 @@ export default {
     // Make a call to WHO SC to get details about country before page loads. Name, Deployed SC address.
   },
   methods: {
-    backToPrvPg () {
+    LogOut () {
       this.$router.push('/')
     },
     handleOpen (key, keyPath) {
