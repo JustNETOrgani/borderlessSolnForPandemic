@@ -13,6 +13,9 @@
                     <h5>Address of Smart Contract: {{country_SCaddr}}</h5>
                 </el-col>
                 <el-col :span="6">
+                    <h5>Status: {{country_Status}}</h5>
+                </el-col>
+                <el-col :span="6">
                     <h5>IPFS hash of TC document: {{country_tcIPFShash}}</h5>
                 </el-col>
             </el-row>
@@ -67,6 +70,7 @@ export default {
       pageLoadingState: false,
       country_Name: '',
       country_SCaddr: '',
+      country_Status: '',
       country_tcIPFShash: ''
     }
   },
