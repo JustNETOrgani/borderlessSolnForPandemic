@@ -99,4 +99,10 @@ contract WHOsc {
     function totalRegisteredCountries() public view returns (uint256) {
         return numOfCountriesRegistered;
     }
+    
+    // Function to get country details.
+    function getCountryInfo(address _addrOfCountry) public view returns (string memory, string memory, stateOfCountry) {
+        require (country[_addrOfCountry].addrOfSC != address(0), "Unregistered country");
+        return (country[_addrOfCountry].nameOfCountry, country[_addrOfCountry].IPFShash, country[_addrOfCountry].cState);
+    }
 }

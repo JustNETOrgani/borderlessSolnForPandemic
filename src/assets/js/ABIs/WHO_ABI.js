@@ -129,6 +129,29 @@ var ABI = [
     type: 'function'
   },
   {
+    inputs: [],
+    name: 'getCountryInfo',
+    outputs: [
+      {
+        internalType: 'string',
+        name: '',
+        type: 'string'
+      },
+      {
+        internalType: 'string',
+        name: '',
+        type: 'string'
+      },
+      {
+        internalType: 'enum WHOsc.stateOfCountry',
+        name: '',
+        type: 'uint8'
+      }
+    ],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
     inputs: [
       {
         internalType: 'string',
@@ -296,7 +319,7 @@ var ABI = [
   }
 ]
 
-var contractAddress = '0x0D351CD36e4E28340B1aCc2f8cA07968A9835D16'
+var contractAddress = '0x98099794C1C512fe86CB8C92d111EC25a4e01e53'
 
 var suppliedGas = 3000000
 
