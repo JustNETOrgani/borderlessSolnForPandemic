@@ -80,21 +80,27 @@ export default {
       var WHOsmartContract = new web3.eth.Contract(ABI, contractAddress, { defaultGas: suppliedGas })// End of ABi Code from Remix.
       console.log('Contract instance created.')
       // Smart contract and other logic continues.
-      WHOsmartContract.methods.checkWHOaddr().call({ from: this.currentAddress }).then(res => {
-        if (res === true) {
+      try {
+        WHOsmartContract.methods.checkWHOaddr().call({ from: this.currentAddress }).then(res => {
+          if (res === true) {
           // Login success. Proceed.
-          this.$message({
-            message: 'Login success',
-            type: 'success'
-          })
-          this.metaMaskLoginBtn = false
-          this.$router.push('/WHO/WHOindex')
-        } else {
+            this.$message({
+              message: 'Login success',
+              type: 'success'
+            })
+            this.metaMaskLoginBtn = false
+            this.$router.push('/WHO/WHOindex')
+          } else {
           // Failed authentication.
-          this.$message.error('Sorry! Failed login.')
-          this.metaMaskLoginBtn = false
-        }
-      })
+            this.$message.error('Sorry! Failed login.')
+            this.metaMaskLoginBtn = false
+          }
+        })
+      } catch {
+        console.log('Sorry! Error occured.')
+        this.metaMaskLoginBtn = false
+        this.$message.error('Contract call error. Please try again later.')
+      }
     },
     BackToPrvPage () {
       this.$router.push('/')

@@ -80,21 +80,27 @@ export default {
       var countrySC = new web3.eth.Contract(ABI, contractAddress, { defaultGas: suppliedGas })// End of ABi Code from Remix.
       console.log('Contract instance created.')
       // Smart contract and other logic continues.
-      countrySC.methods.checkLoginAddr().call({ from: this.currentAddress }).then(res => {
-        if (res === true) {
+      try {
+        countrySC.methods.checkLoginAddr().call({ from: this.currentAddress }).then(res => {
+          if (res === true) {
           // Login success. Proceed.
-          this.$message({
-            message: 'Login success',
-            type: 'success'
-          })
-          this.metaMaskLoginBtn = false
-          this.$router.push('/Country_level/countryLanding')
-        } else {
+            this.$message({
+              message: 'Login success',
+              type: 'success'
+            })
+            this.metaMaskLoginBtn = false
+            this.$router.push('/Country_level/countryLanding')
+          } else {
           // Failed authentication.
-          this.$message.error('Sorry! Failed login.')
-          this.metaMaskLoginBtn = false
-        }
-      })
+            this.$message.error('Sorry! Failed login.')
+            this.metaMaskLoginBtn = false
+          }
+        })
+      } catch {
+        console.log('Sorry! Error occured.')
+        this.metaMaskLoginBtn = false
+        this.$message.error('Contract call error. Please try again later.')
+      }
     },
     BackToPrvPage () {
       this.$router.push('/')
