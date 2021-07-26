@@ -57,7 +57,7 @@ export default {
         },
         {
           title: 'Testing Center',
-          author: 'Administer testing and vaccination',
+          author: 'Administering tests and vaccines',
           image: 'https://user-images.githubusercontent.com/44321289/126855869-edc6c68f-6608-42c0-9443-6cf84af52a06.png'
         },
         {
