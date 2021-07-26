@@ -396,7 +396,7 @@ var ABIcountrySC = [
   }
 ]
 
-var contractAddressCountrySC = '0x886B56E39a09f5b38163bBb41419c33a16107D78'
+var contractAddressCountrySC = '0x3E69865fA31dD0d48e2e9DffEabb59a0661aE35E'
 
 var suppliedGasCountrySC = 3000000
 

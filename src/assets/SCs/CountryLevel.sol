@@ -16,7 +16,7 @@ contract countrySC{
         address TC_addr; // Address of TC.
         stateOfTC tcState; // State of the Patient.
     }
-    enum stateOfTC {Holding, Activated, ReActivated, Revoked} // States that TCs can be.
+    enum stateOfTC {Holding, Activated, Revoked} // States that TCs can be.
     // Global state variables.
     address HMdir; // Contract deployer like Health Ministry or CDC in a country.
     // Public mappings.
@@ -82,7 +82,7 @@ contract countrySC{
     function reactivateTCcert(string memory _TC_name,address _TC_addr, string memory reason) HM public returns (bool){
 		require (TC[_TC_addr].TC_addr == _TC_addr, "Address of TC mismatch");
 		require (keccak256(abi.encodePacked(TC[_TC_addr].TC_name)) == keccak256(abi.encodePacked(_TC_name)), "Name of TC mismatch");
-        TC[_TC_addr].tcState = stateOfTC.ReActivated;
+        TC[_TC_addr].tcState = stateOfTC.Activated;
         emit TCreActivated(_TC_addr, reason); // Emit event on revoke of country. 
         return true;
     }
@@ -90,7 +90,7 @@ contract countrySC{
     // Function to register patient.
     function patientRegistration(address _personAddress, bytes32 _HID, bytes32 _hIPFShash, bytes32 _covidTnVStatus, uint8 _vState, string memory _signature) public returns (bool result){
         // AA checks.
-        require (keccak256(abi.encodePacked(TC[msg.sender].tcState))==keccak256(abi.encodePacked("Activated")), 'Access denied');// Check msg.sender is part of Activated TCs.
+        require (TC[msg.sender].tcState==stateOfTC.Activated, 'Access denied');// Check msg.sender is part of Activated TCs.
         require (patient[_HID].HID == "", "HID already exist");
         patient[_HID] = patientStruct(_personAddress, _HID, _hIPFShash, _covidTnVStatus, _signature);
         totalTested += 1;
@@ -103,7 +103,7 @@ contract countrySC{
     //  Fucntion to update a person's Covid-19 test status by an approvedHealthFacility.
     function patientRecordUpdate(address _personAddress, bytes32 _HID, bytes32 _hIPFShash, bytes32 _covidTnVStatus, uint8 _vState, string memory _signature_new) public returns (bool result){
         // AA checks.
-        require (keccak256(abi.encodePacked(TC[msg.sender].tcState))==keccak256(abi.encodePacked("Activated")), 'Access denied');// Check msg.sender is part of Activated TCs.
+        require (TC[msg.sender].tcState==stateOfTC.Activated, 'Access denied');// Check msg.sender is part of Activated TCs.
         require(patient[_HID].HID == _HID, 'Invalid Hashed Identifier');
         require (patient[_HID].personAddress == _personAddress, "Address mismatch");
         // Update person records

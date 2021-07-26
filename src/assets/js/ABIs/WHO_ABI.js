@@ -319,7 +319,7 @@ var ABI = [
   }
 ]
 
-var contractAddress = '0x98099794C1C512fe86CB8C92d111EC25a4e01e53'
+var contractAddress = '0x1Bba9445114488422f7794aBC56F0b0436cEFF9a'
 
 var suppliedGas = 3000000
 
