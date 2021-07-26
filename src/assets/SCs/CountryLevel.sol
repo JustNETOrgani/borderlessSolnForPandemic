@@ -50,6 +50,16 @@ contract countrySC{
      _;
      }
      
+    // Function to authenticate Country login via MetaMask.
+    function checkLoginAddr() public view returns (bool) {
+        if (msg.sender == HMdir) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+     
     // Function to register a TC.
     function registerTC(string memory _TC_name,address _TC_addr) HM public returns (bool){
         TC[_TC_addr].TC_addr = _TC_addr;
