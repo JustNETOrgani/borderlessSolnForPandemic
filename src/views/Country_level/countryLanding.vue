@@ -155,7 +155,7 @@ export default {
       })
     },
     LogOut () {
-      this.$router.push('/')
+      this.$router.push('/Country_level/login')
     },
     handleOpen (key, keyPath) {
       console.log(key, keyPath)
