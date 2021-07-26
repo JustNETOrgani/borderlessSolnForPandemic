@@ -51,9 +51,24 @@ const routes = [
     path: '/Country_level/countryLanding',
     name: 'countryIndexPage',
     component: () => import('@/views/Country_level/countryLanding.vue')
+  },
+  {
+    path: '/Country_level/registerTC',
+    name: 'countryRegistTC',
+    component: () => import('@/views/Country_level/registerTC.vue')
+  },
+  {
+    path: '/Country_level/revokeTC',
+    name: 'countryRevokeTC',
+    component: () => import('@/views/Country_level/revokeTC.vue')
+  },
+  {
+    path: '/Country_level/reactivateTC',
+    name: 'countryReactivateTC',
+    component: () => import('@/views/Country_level/reactivateTC.vue')
   }
 
-  // Health facility.
+  // Testing Center.
 
   // Verifiers.
 
