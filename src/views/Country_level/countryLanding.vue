@@ -3,20 +3,34 @@
         <div id="topNav">
           <el-link icon="el-icon-arrow-left" style="font-size:17px;float:left;" @click="LogOut">Log out</el-link>
         </div>
-        <div class="wrapper" :loading="pageLoadingState">
+        <div class="wrapper" v-loading="pageLoadingState">
             <h3>Country Management Dashboard</h3>
             <el-row>
                 <el-col :span="6">
-                    <h5>Name of Country: {{country_Name}}</h5>
+                    <h4>Name of Country</h4>
                 </el-col>
                 <el-col :span="6">
-                    <h5>Address of Smart Contract: {{country_SCaddr}}</h5>
+                    <h4>Address of Smart Contract</h4>
+                </el-col>
+                <el-col :span="4">
+                    <h4>Status</h4>
                 </el-col>
                 <el-col :span="6">
-                    <h5>Status: {{country_Status}}</h5>
+                    <h4>IPFS hash of TC document</h4>
+                </el-col>
+            </el-row>
+            <el-row>
+                <el-col :span="6">
+                    <h5>{{country_Name}}</h5>
                 </el-col>
                 <el-col :span="6">
-                    <h5>IPFS hash of TC document: {{country_tcIPFShash}}</h5>
+                    <h5>{{country_SCaddr}}</h5>
+                </el-col>
+                <el-col :span="4">
+                    <h5>{{country_Status}}</h5>
+                </el-col>
+                <el-col :span="6">
+                    <h5>{{country_tcIPFShash}}</h5>
                 </el-col>
             </el-row>
             <div class="tasksSections" id="registTask">
@@ -63,6 +77,9 @@
 </template>
 
 <script>
+import ethEnabled from '@/assets/js/web3nMetaMask'
+import web3 from '@/assets/js/web3Only'
+import { ABI, contractAddress, suppliedGas } from '@/assets/js/ABIs/WHO_ABI'
 
 export default {
   data () {
@@ -71,22 +88,72 @@ export default {
       country_Name: '',
       country_SCaddr: '',
       country_Status: '',
-      country_tcIPFShash: ''
+      country_tcIPFShash: '',
+      currentAddress: ''
     }
   },
   created () {
-    /* if (!ethEnabled()) {
+    if (!ethEnabled()) {
       this.$message('Please install an Ethereum-compatible browser or extension like MetaMask to use this dApp!')
     } else {
       this.getAccount().then(accounts => {
         this.currentAddress = accounts[0]
         console.log('Current account: ', this.currentAddress)
+        // Make a call to WHO SC to get details about country before page loads. Name, Deployed SC address.
+        this.loadCountryInfoFromWHOsc()
       })
-    } */
-    this.pageLoadingState = true
-    // Make a call to WHO SC to get details about country before page loads. Name, Deployed SC address.
+    }
+  },
+  watch: {
+    'currentAddress' () {
+      this.switchAccount()
+    }
   },
   methods: {
+    loadCountryInfoFromWHOsc () {
+      this.pageLoadingState = true
+      console.log('Getting country info.')
+      var WHOsmartContract = new web3.eth.Contract(ABI, contractAddress, { defaultGas: suppliedGas })// End of ABi Code from Remix.
+      console.log('Contract instance created.')
+      // Smart contract and other logic continues.
+      try {
+        WHOsmartContract.methods.getCountryInfo().call({ from: this.currentAddress }).then(res => {
+          this.country_Name = res[0]
+          this.country_SCaddr = this.currentAddress
+          this.country_tcIPFShash = res[1]
+          if (res[2] === '1') {
+            this.country_Status = 'Activated'
+          }
+          if (res[2] === '2') {
+            this.country_Status = 'Revoked'
+          }
+          this.pageLoadingState = false
+        }).catch(err => {
+          console.log('Error calling SC: ', err)
+          this.$message.error('Sorry! Country unknown.')
+        })
+      } catch {
+        console.log('Sorry! Error occured.')
+        this.$message.error('Sorry! Country unknown.')
+      }
+    },
+    async getAccount () {
+      var accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+      return accounts
+    },
+    switchAccount () {
+      var myRoot = this // Ensure all this or vue global variables can be accessed within this fucntion via myRoot.
+      window.ethereum.on('accountsChanged', function (accounts) {
+        myRoot.currentAddress = accounts[0]
+        console.log('Selected account: ', myRoot.currentAddress)
+        myRoot.$message({
+          message: 'Account switched successfully.',
+          type: 'success'
+        })
+        console.log('Account switched')
+        myRoot.accountChangeStatus = true
+      })
+    },
     LogOut () {
       this.$router.push('/')
     },
