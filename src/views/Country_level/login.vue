@@ -21,7 +21,7 @@
 
 <script>
 // @ is an alias to /src
-// import ethEnabled from '@/assets/js/web3nMetaMask'
+import ethEnabled from '@/assets/js/web3nMetaMask'
 import web3 from '@/assets/js/web3Only'
 import { ABI, contractAddress, suppliedGas } from '@/assets/js/ABIs/WHO_ABI'
 // Import image.
@@ -42,14 +42,14 @@ export default {
   components: {
   },
   created () {
-    /* if (!ethEnabled()) {
+    if (!ethEnabled()) {
       this.$message('Please install an Ethereum-compatible browser or extension like MetaMask to use this dApp!')
     } else {
       this.getAccount().then(accounts => {
         this.currentAddress = accounts[0]
         console.log('Current account: ', this.currentAddress)
       })
-    } */
+    }
   },
   watch: {
     'currentAddress' () {
