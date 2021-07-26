@@ -135,12 +135,12 @@ export default {
                       message: 'Transaction successful.',
                       type: 'success'
                     })
-                    this.$alert('Transaction hash : ' + tnxReceipt, 'TC Registration success', {
+                    this.$alert('Transaction hash : ' + tnxReceipt, 'TC Reactivation success', {
                       confirmButtonText: 'OK',
                       callback: action => {
                         this.$message({
                           type: 'info',
-                          message: 'TC successfully registered.'
+                          message: 'TC successfully reactivated.'
                         })
                       }
                     })
