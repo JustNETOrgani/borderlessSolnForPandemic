@@ -27,7 +27,7 @@
                     <h5>{{country_SCaddr}}</h5>
                 </el-col>
                 <el-col :span="4">
-                    <h5>{{country_Status}}</h5>
+                    <h5 :class="[country_Status.length < 9 ? 'statusRed' : 'statusGreen']">{{country_Status}}</h5>
                 </el-col>
                 <el-col :span="6">
                     <h5>{{country_tcIPFShash}}</h5>
@@ -181,6 +181,9 @@ export default {
 }
 h3{color:cornflowerblue}
 h4{text-align: center; color: darksalmon;}
+
+.statusGreen {color: darkgreen; font-style: italic; font-weight: bold;}
+.statusRed {color: darkred; font-style: italic; font-weight: bold;}
 
 .wrapper {
   background-color: #ffffff;
