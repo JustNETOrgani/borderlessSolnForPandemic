@@ -95,6 +95,8 @@ export default {
             this.$message.error('Sorry! Failed login.')
             this.metaMaskLoginBtn = false
           }
+        }).catch(err => {
+          console.log('Error calling SC: ', err)
         })
       } catch {
         console.log('Sorry! Error occured.')
