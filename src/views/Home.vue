@@ -95,7 +95,7 @@ export default {
         window.location.href = 'Country_level/login'
       }
       if (selectedIndex === 2) {
-        console.log('3 selected')
+        window.location.href = 'Country_level/TC/login'
       }
       if (selectedIndex === 3) {
         console.log('4 selected')

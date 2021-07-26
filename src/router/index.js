@@ -66,10 +66,18 @@ const routes = [
     path: '/Country_level/reactivateTC',
     name: 'countryReactivateTC',
     component: () => import('@/views/Country_level/reactivateTC.vue')
-  }
-
+  },
   // Testing Center.
-
+  {
+    path: '/Country_level/TC/login',
+    name: 'countryTClogin',
+    component: () => import('@/views/Country_level/TC/login.vue')
+  },
+  {
+    path: '/Country_level/TC/tcLanding',
+    name: 'countryTClanding',
+    component: () => import('@/views/Country_level/TC/tcLanding.vue')
+  }
   // Verifiers.
 
   // Person.
