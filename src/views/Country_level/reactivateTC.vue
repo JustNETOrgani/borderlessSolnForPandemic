@@ -33,7 +33,7 @@
                                 </fieldset>
                                 <br>
                                 <el-form-item>
-                                    <el-button type="warning" :loading="registCountryBtnLoadState" @click="submitForm('tcRegistForm')">Revoke TC</el-button>
+                                    <el-button type="warning" :loading="registTCBtnLoadState" @click="submitForm('tcRegistForm')">Revoke TC</el-button>
                                     <el-button @click="resetForm('tcRegistForm')">Reset</el-button>
                                 </el-form-item>
                         </el-form>
@@ -47,7 +47,7 @@
 <script>
 import ethEnabled from '@/assets/js/web3nMetaMask'
 import web3 from '@/assets/js/web3Only'
-import { ABI, contractAddress, suppliedGas } from '@/assets/js/ABIs/WHO_ABI'
+import { ABIcountrySC, contractAddressCountrySC, suppliedGasCountrySC } from '@/assets/js/ABIs/Country_ABI'
 export default {
   data () {
     return {
@@ -107,7 +107,7 @@ export default {
     },
     submitForm (formName) {
       if (this.tcRegistForm.authCheckBox === true) {
-        if (this.countryNameValidation(this.tcRegistForm.tcName) !== 0) {
+        if (this.tcNameValidation(this.tcRegistForm.tcName) !== 0) {
           if (web3.utils.isAddress(this.tcRegistForm.addrOfTC) === true) {
             this.$refs[formName].validate(valid => {
               this.registTCBtnLoadState = true
@@ -119,15 +119,15 @@ export default {
                   reactivateReason: this.tcRegistForm.reactivateReason
                 }
                 console.log('Registration data: ', data)
-                var countrySC = new web3.eth.Contract(ABI, contractAddress, { defaultGas: suppliedGas })
+                var countrySC = new web3.eth.Contract(ABIcountrySC, contractAddressCountrySC, { defaultGas: suppliedGasCountrySC })
                 console.log('Contract instance created.')
                 // Smart contract and other logic continues.
                 try {
                   // Transaction parameters
                   const txParams = {
                     from: this.contractDeployerAccount,
-                    to: contractAddress,
-                    data: countrySC.methods.registerTC(data.tcName, data.addrOfTC, data.reactivateReason).encodeABI()
+                    to: contractAddressCountrySC,
+                    data: countrySC.methods.reactivateTCcert(data.tcName, data.addrOfTC, data.reactivateReason).encodeABI()
                   }
                   this.sendTnx(txParams).then(tnxReceipt => {
                     console.log('Transaction receipt: ', tnxReceipt)
@@ -173,8 +173,9 @@ export default {
         this.$message('Please check the checkbox')
       }
     },
-    countryNameValidation (input) {
-      if (input === '' || /[^a-zA-Z]/.test(input) === true || input == null) {
+    tcNameValidation (input) {
+      var regexpRule = new RegExp('^[0-9A-Za-z_.-]+$')
+      if (!regexpRule.test(input)) {
         return 0
       } else {
         return 1
