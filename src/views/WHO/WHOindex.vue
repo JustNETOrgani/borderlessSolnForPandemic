@@ -1,7 +1,7 @@
 <template>
     <div class="pageContainer">
         <div id="topNav">
-          <el-link icon="el-icon-arrow-left" style="font-size:17px;float:left;" @click="backToPrvPg">Previous Page</el-link>
+          <el-link icon="el-icon-arrow-left" style="font-size:17px;float:left;" @click="logOut">Log out</el-link>
         </div>
         <div class="wrapper">
             <h3>World Health Organization Management Dashboard</h3>
@@ -75,7 +75,7 @@ export default {
     }
   },
   methods: {
-    backToPrvPg () {
+    logOut () {
       this.$router.push('/')
     },
     handleOpen (key, keyPath) {
