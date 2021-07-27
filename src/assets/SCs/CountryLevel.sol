@@ -59,6 +59,18 @@ contract countrySC{
             return false;
         }
     }
+    
+    // Function to authenticate TC login via MetaMask.
+    function checkTCLogin() public view returns (bool) {
+        if (TC[msg.sender].TC_addr != address(0)) {
+            // TC is registered.
+            return true;
+        }
+        else {
+            // Unregistered TC.
+            return false;
+        }
+    }
      
     // Function to register a TC.
     function registerTC(string memory _TC_name,address _TC_addr) HM public returns (bool){
@@ -85,6 +97,12 @@ contract countrySC{
         TC[_TC_addr].tcState = stateOfTC.Activated;
         emit TCreActivated(_TC_addr, reason); // Emit event on revoke of country. 
         return true;
+    }
+    
+    // Function to get TC details. Only registered TCs can call due to msg.sender usage.
+    function getTCInfo() public view returns (string memory, stateOfTC) {
+        require (TC[msg.sender].TC_addr != address(0), "Unregistered TC");
+        return (TC[msg.sender].TC_name, TC[msg.sender].tcState);
     }
     
     // Function to register patient.

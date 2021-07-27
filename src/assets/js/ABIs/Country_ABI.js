@@ -144,6 +144,37 @@ var ABIcountrySC = [
     type: 'function'
   },
   {
+    inputs: [],
+    name: 'checkTCLogin',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool'
+      }
+    ],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [],
+    name: 'getTCInfo',
+    outputs: [
+      {
+        internalType: 'string',
+        name: '',
+        type: 'string'
+      },
+      {
+        internalType: 'enum countrySC.stateOfTC',
+        name: '',
+        type: 'uint8'
+      }
+    ],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
     inputs: [
       {
         internalType: 'address',
@@ -396,7 +427,7 @@ var ABIcountrySC = [
   }
 ]
 
-var contractAddressCountrySC = '0x3E69865fA31dD0d48e2e9DffEabb59a0661aE35E'
+var contractAddressCountrySC = '0x03BC982EC8A15918b9d855D48fF24dC36f7Ffa76'
 
 var suppliedGasCountrySC = 3000000
 
