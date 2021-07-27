@@ -72,6 +72,38 @@
                     </el-col>
                 </el-row>
             </div>
+            <el-row>
+              <h3>TC Document area</h3>
+               <el-col :span="12">
+                 <el-form
+                    :model="tcDocUpload"
+                    ref="tcDocUpload"
+                    label-width="220px"
+                  >
+                     <fieldset>
+                        <legend>File upload</legend>
+                            <el-col :span="16" :offset="1">
+                              <el-form-item label="TC Document Upload to IPFS" prop="tcDoc">
+                                <el-upload
+                                  class="upload-demo"
+                                  action="tcDocumentUpload"
+                                  :http-request="beforeUpload"
+                                  :on-remove="handleRemove"
+                                  :before-remove="beforeRemove">
+                                  <el-button class="el-icon-upload" slot="trigger" size="small" type="primary">Select TC Document</el-button>
+                                  <div class="el-upload__tip" slot="tip">.json file only. Max. size is 10MB</div>
+                                </el-upload>
+                              </el-form-item>
+                            </el-col>
+                     </fieldset>
+                 </el-form>
+               </el-col>
+               <el-col :span="12">
+                  <legend>Update TC IPFS hash in WHO's SC</legend>
+                  <br>
+                  <el-button class="el-icon-refresh" type="warning"  @click="updateTCforCountry()">Perform update</el-button>
+               </el-col>
+            </el-row>
         </div>
     </div>
 </template>
@@ -89,7 +121,11 @@ export default {
       country_SCaddr: '',
       country_Status: '',
       country_tcIPFShash: '',
-      currentAddress: ''
+      currentAddress: '',
+      tcDocUpload: {
+        tcDoc: ''
+      },
+      readJSONfile: null
     }
   },
   created () {
@@ -166,6 +202,48 @@ export default {
     },
     handleClose (key, keyPath) {
       console.log(key, keyPath)
+    },
+    beforeUpload (item) {
+      const file = item.file
+      console.log('File action:', item.action)
+      const extensionJSON = file.name.split('.').pop() === 'json'
+      const sizeLimit = file.size / 1024 / 1024 < 10
+      if (!extensionJSON) {
+        this.$message.warning('Sorry! The uploaded TC file can only be in JSON format!')
+        return
+      }
+      if (!sizeLimit) {
+        this.$message.warning('Sorry! The upload file size cannot exceed 10MB!')
+        return
+      }
+      if (item.action === 'tcDocumentUpload') {
+        console.log('Initilaized upload of TC document: ', file)
+        var reader = new FileReader()
+        reader.readAsText(file)
+        reader.onload = e => this.jsonParserAsync(e.target.result) // e.target.result is the filestring or actual text within the file.
+          .then(res => {
+            this.readJSONfile = res
+            console.log('Read json file: ', this.readJSONfile)
+            // Push file to IPFS to get returned hash.
+            // Precompute IPFS hash.
+            // Push file to IPFS.
+            // Verify returned hash matches precomputed hash.
+            // Display on DOM.
+          })
+      }
+    },
+    async jsonParserAsync (filestring) {
+      return JSON.parse(filestring)
+    },
+    updateTCforCountry () {
+      console.log('Getting ready to update TC for this country.')
+      // Get confirmation from user before proceeding.
+    },
+    handleRemove (file, fileList) {
+      console.log(file, fileList)
+    },
+    beforeRemove (file, fileList) {
+      return this.$confirm(`Cancel the transfert of ${file.name} ?`)
     }
   },
   computed: {
