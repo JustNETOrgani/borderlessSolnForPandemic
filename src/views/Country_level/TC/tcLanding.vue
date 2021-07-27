@@ -6,20 +6,15 @@
         <div class="wrapper" v-loading="pageLoadingState">
             <h2>Testing Center's Dashboard</h2>
             <el-row>
-                <el-col :span="8">
-                    <h5>Address of TC:</h5>
-                </el-col>
-                <el-col :span="4" :offset="2">
-                    <h5>Status:</h5>
-                </el-col>
-            </el-row>
-            <el-row>
-                <el-col :span="8">
-                    <h5>{{addrOfTC}}</h5>
-                </el-col>
-                <el-col :span="4" :offset="2">
-                    <h5 :class="[statusOfTC.length < 9 ? 'statusRed' : 'statusGreen']">{{statusOfTC}}</h5>
-                </el-col>
+              <el-col :span="6">
+                <h5>TC's Name: {{nameOfTC}}</h5>
+              </el-col>
+              <el-col :span="12">
+                <h5>Address of TC: {{addrOfTC}}</h5>
+              </el-col>
+              <el-col :span="4" :offset="2">
+                <h5 :class="[statusOfTC.length < 9 ? 'statusRed' : 'statusGreen']">Status: {{statusOfTC}}</h5>
+              </el-col>
             </el-row>
             <el-row>
                 <el-col :span="12">
@@ -33,12 +28,12 @@
                         active-text-color="#ffd04b">
                         <el-submenu index="1">
                             <template slot="title">
-                            <i class="el-icon-location"></i>
+                            <i class="el-icon-user"></i>
                             <span>Patient handling</span>
                             </template>
                             <el-menu-item-group title="Data Entry">
-                            <el-menu-item index="1-1">Enroll Patient</el-menu-item>
-                            <el-menu-item index="1-2">Patient Update</el-menu-item>
+                            <el-menu-item index="1-1"><el-link :underline="false" style="color: #fff;" href="enrollPatient">Enroll Patient</el-link></el-menu-item>
+                            <el-menu-item index="1-2"><el-link :underline="false" style="color: #fff;" href="updatePatientInfo">Patient Update</el-link></el-menu-item>
                             </el-menu-item-group>
                             <el-menu-item-group title="Information">
                             <el-menu-item index="1-3">Statistics</el-menu-item>
@@ -77,6 +72,7 @@ import { ABIcountrySC, contractAddressCountrySC, suppliedGasCountrySC } from '@/
 export default {
   data () {
     return {
+      nameOfTC: '',
       addrOfTC: '',
       statusOfTC: '',
       pageLoadingState: false,
@@ -120,17 +116,18 @@ export default {
     },
     loadTCinfoFromCountrySC () {
       this.pageLoadingState = true
-      console.log('Getting country info.')
+      console.log('Getting TC info.')
       var countrySC = new web3.eth.Contract(ABIcountrySC, contractAddressCountrySC, { defaultGas: suppliedGasCountrySC })// End of ABi Code from Remix.
       console.log('Contract instance created.')
       // Smart contract and other logic continues.
       try {
         countrySC.methods.getTCInfo().call({ from: this.currentAddress }).then(res => {
+          this.nameOfTC = res[0]
           this.addrOfTC = this.currentAddress
-          if (res[0] === '1') {
+          if (res[1] === '1') {
             this.statusOfTC = 'Activated'
           }
-          if (res[0] === '2') {
+          if (res[1] === '2') {
             this.statusOfTC = 'Revoked'
           }
           this.pageLoadingState = false
@@ -176,7 +173,7 @@ export default {
   background-color: #ffffff;
   border-radius: 4px;
   margin: 2.5% auto;
-  width: 40%;
+  width: 45%;
   padding: 1rem 1.5rem;
 }
 
