@@ -76,6 +76,10 @@ export default {
   },
   methods: {
     logOut () {
+    // Clear authorization.
+      sessionStorage.removeItem('API-HTTP-AUTHORIZATION')
+      sessionStorage.removeItem('USER-TYPE')
+      sessionStorage.clear()
       this.$router.push('/')
     },
     handleOpen (key, keyPath) {

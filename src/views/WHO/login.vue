@@ -88,6 +88,12 @@ export default {
               message: 'Login success',
               type: 'success'
             })
+            // Generate random number as token.
+            var genRandNums = this.generateSecureRandomNumber()
+            const token = genRandNums[5]
+            // Set token and user type via session storage.
+            this.$store.commit('set_token', token)
+            this.$store.commit('set_user_type', 'WHO')
             this.metaMaskLoginBtn = false
             this.$router.push('/WHO/WHOindex')
           } else {
@@ -103,6 +109,10 @@ export default {
         this.metaMaskLoginBtn = false
         this.$message.error('Contract call error. Please try again later.')
       }
+    },
+    generateSecureRandomNumber () {
+      var array = new Uint32Array(10)
+      return window.crypto.getRandomValues(array)
     },
     BackToPrvPage () {
       this.$router.push('/')

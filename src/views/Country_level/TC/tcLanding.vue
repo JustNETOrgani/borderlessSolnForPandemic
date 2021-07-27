@@ -144,6 +144,10 @@ export default {
       }
     },
     logOut () {
+      // Clear authorization.
+      sessionStorage.removeItem('API-HTTP-AUTHORIZATION')
+      sessionStorage.removeItem('USER-TYPE')
+      sessionStorage.clear()
       this.$router.push('/Country_level/TC/login')
     },
     handleOpen (key, keyPath) {
