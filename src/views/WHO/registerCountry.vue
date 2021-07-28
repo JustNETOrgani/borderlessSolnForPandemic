@@ -22,7 +22,7 @@
                             <el-form-item label="Name of Country" prop="countryName">
                                 <el-input v-model="countryRegistForm.countryName" placeholder="Name of the Country."></el-input>
                             </el-form-item>
-                            <el-form-item label="Address of Country's SC" prop="scAddrOfCountry">
+                            <el-form-item label="Country's address" prop="scAddrOfCountry">
                                 <el-input v-model="countryRegistForm.scAddrOfCountry" placeholder="Please input SC address of Country."></el-input>
                             </el-form-item>
                             <el-form-item label="Blockchain in use" prop="btcInUse">
