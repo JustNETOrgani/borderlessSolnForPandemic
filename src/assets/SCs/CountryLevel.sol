@@ -55,16 +55,6 @@ contract countrySC{
      require(TC[msg.sender].TC_addr != address(0), "TC unknown");
      _;
      }
-     
-    // Function to authenticate Country login via MetaMask.
-    function checkLoginAddr() public view returns (bool) {
-        if (msg.sender == HMdir) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
     
     // Function to authenticate TC login via MetaMask.
     function checkTCLogin() public view returns (bool) {

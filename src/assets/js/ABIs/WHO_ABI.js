@@ -78,6 +78,19 @@ var ABI = [
   },
   {
     inputs: [],
+    name: 'checkLoginAddr',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool'
+      }
+    ],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [],
     name: 'checkWHOaddr',
     outputs: [
       {
@@ -309,7 +322,7 @@ var ABI = [
   }
 ]
 
-var contractAddress = '0x3aF99950C216E7027c40121B9dcA29e2876dFeE7'
+var contractAddress = '0x6f86723F912ee1cCa85195BCB621317059d2EaD1'
 
 var suppliedGas = 3000000
 

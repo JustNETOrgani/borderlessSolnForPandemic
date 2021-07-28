@@ -96,6 +96,16 @@ contract WHOsc {
     }
     
     // Functions that registered countries can interact with.
+    // Function to authenticate WHO login via MetaMask.
+    function checkLoginAddr() public view returns (bool) {
+        if (country[msg.sender].addrOfCountry != address(0)) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+        
     // Function to update IPFS hash containing country's TCs.
     function updateTChash(string memory _newIPFShash) RegisteredCountryOnly public returns (bool result){
         require (keccak256(abi.encodePacked(country[msg.sender].IPFShash)) != keccak256(abi.encodePacked(_newIPFShash)), "IPFS hash already exist");

@@ -120,19 +120,6 @@ var ABIcountrySC = [
   },
   {
     inputs: [],
-    name: 'checkLoginAddr',
-    outputs: [
-      {
-        internalType: 'bool',
-        name: '',
-        type: 'bool'
-      }
-    ],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [],
     name: 'checkTCLogin',
     outputs: [
       {
@@ -405,7 +392,7 @@ var ABIcountrySC = [
   }
 ]
 
-var contractAddressCountrySC = '0x8ab31a5917167D6152fe74B65547934BB4c4Af36'
+var contractAddressCountrySC = '0x8A32022dae7d85b752545a3483FeCFC0e3A2186E'
 
 var suppliedGasCountrySC = 3000000
 
