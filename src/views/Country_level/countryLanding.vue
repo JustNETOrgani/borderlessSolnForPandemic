@@ -10,13 +10,13 @@
                     <h4>Name of Country</h4>
                 </el-col>
                 <el-col :span="6">
-                    <h4>Address of Smart Contract</h4>
+                    <h4>Blockchain Address</h4>
                 </el-col>
                 <el-col :span="4">
                     <h4>Status</h4>
                 </el-col>
                 <el-col :span="6">
-                    <h4>IPFS hash of TC document</h4>
+                    <h4>IPFS hash of Current TC File</h4>
                 </el-col>
             </el-row>
             <el-row>
@@ -72,9 +72,11 @@
                     </el-col>
                 </el-row>
             </div>
-            <el-row>
-              <h3>TC Document area</h3>
-               <el-col :span="12">
+        </div>
+        <div id="tcLoaderDIV">
+            <h3>TC Document area</h3>
+            <h4>Document upload and Update in WHO Smart Contract</h4>
+            <el-col :span="12" :offset="6">
                  <el-form
                     :model="tcDocUpload"
                     ref="tcDocUpload"
@@ -82,7 +84,7 @@
                   >
                      <fieldset>
                         <legend>File upload</legend>
-                            <el-col :span="16" :offset="1">
+                            <el-col :span="16" :offset="3">
                               <el-form-item label="TC Document Upload to IPFS" prop="tcDoc">
                                 <el-upload
                                   class="upload-demo"
@@ -90,20 +92,15 @@
                                   :http-request="beforeUpload"
                                   :on-remove="handleRemove"
                                   :before-remove="beforeRemove">
-                                  <el-button class="el-icon-upload" slot="trigger" size="small" type="primary">Select TC Document</el-button>
+                                  <el-button :loading="updateTCloadState" class="el-icon-upload" slot="trigger" size="small" type="primary">Select TC Document</el-button>
                                   <div class="el-upload__tip" slot="tip">.json file only. Max. size is 10MB</div>
                                 </el-upload>
                               </el-form-item>
+                              <p :class="[newTCipfsHash.length == 0 ? 'notShow' : 'showReturnedHash']">IPFS hash: {{newTCipfsHash}}</p>
                             </el-col>
                      </fieldset>
                  </el-form>
                </el-col>
-               <el-col :span="12">
-                  <legend>Update TC IPFS hash in WHO's SC</legend>
-                  <br>
-                  <el-button class="el-icon-refresh" type="warning"  @click="updateTCforCountry()">Perform update</el-button>
-               </el-col>
-            </el-row>
         </div>
     </div>
 </template>
@@ -112,6 +109,8 @@
 import ethEnabled from '@/assets/js/web3nMetaMask'
 import web3 from '@/assets/js/web3Only'
 import { ABI, contractAddress, suppliedGas } from '@/assets/js/ABIs/WHO_ABI'
+import computeIPFShash from '@/assets/js/precomputeIPFShash'
+const ipfs = new window.Ipfs()
 
 export default {
   data () {
@@ -122,10 +121,12 @@ export default {
       country_Status: '',
       country_tcIPFShash: '',
       currentAddress: '',
+      newTCipfsHash: '',
       tcDocUpload: {
         tcDoc: ''
       },
-      readJSONfile: null
+      readJSONfile: null,
+      updateTCloadState: false
     }
   },
   created () {
@@ -226,18 +227,95 @@ export default {
             console.log('Read json file: ', this.readJSONfile)
             // Push file to IPFS to get returned hash.
             // Precompute IPFS hash.
-            // Push file to IPFS.
-            // Verify returned hash matches precomputed hash.
+            const MyBuffer = window.Ipfs.Buffer
+            var dataToBuffer = MyBuffer.from(this.readJSONfile)
+            computeIPFShash(dataToBuffer).then(precomputedIPFShash => {
+              // Push file to IPFS.
+              ipfs.add(dataToBuffer).then(res => {
+              // Confirm returned IPFS matches precomputed hash.
+                if (precomputedIPFShash === res[0].hash) {
+                  // Match confirmed
+                  this.newTCipfsHash = res[0].hash
+                  console.log('TC IPFS hash: ', this.newTCipfsHash)
+                  // Prompt user before proceeding with update.
+                  this.$confirm('Continue with update in Smart Contract?', 'Confirmation required', {
+                    confirmButtonText: 'Yes',
+                    cancelButtonText: 'No',
+                    type: 'warning'
+                  }).then(() => {
+                    // Perform update.
+                    this.updateTCforCountry(this.newTCipfsHash)
+                  }).catch(() => {
+                    this.$message({
+                      type: 'info',
+                      message: 'Update aborted'
+                    })
+                  })
+                } else {
+                  this.$alert('Possible MiTM attack! IPFS mismatch! ', 'IPFS hash mismatch', {
+                    confirmButtonText: 'OK',
+                    callback: action => {
+                      this.$message({
+                        type: 'warning ',
+                        message: 'User informed'
+                      })
+                    }
+                  })
+                }
+              })
+            })
             // Display on DOM.
           })
       }
     },
     async jsonParserAsync (filestring) {
-      return JSON.parse(filestring)
+      return JSON.parse(JSON.stringify(filestring))
     },
-    updateTCforCountry () {
+    updateTCforCountry (newIPFShash) {
       console.log('Getting ready to update TC for this country.')
       // Get confirmation from user before proceeding.
+      var WHOsmartContract = new web3.eth.Contract(ABI, contractAddress, { defaultGas: suppliedGas })
+      console.log('Contract instance created.')
+      // Smart contract and other logic continues.
+      try {
+        // Transaction parameters
+        const txParams = {
+          from: this.currentAddress,
+          to: contractAddress,
+          data: WHOsmartContract.methods.updateTChash(newIPFShash).encodeABI()
+        }
+        this.sendTnx(txParams).then(tnxReceipt => {
+          console.log('Transaction receipt: ', tnxReceipt)
+          this.$message({
+            message: 'Transaction successful.',
+            type: 'success'
+          })
+          this.$alert('Transaction hash : ' + tnxReceipt, 'Update success', {
+            confirmButtonText: 'OK',
+            callback: action => {
+              this.$message({
+                type: 'info',
+                message: 'IPFS hash of TCs successfully updated.'
+              })
+            }
+          })
+          this.updateTCloadState = false
+          // Reload page to reflect new IPFS hash.
+          window.location.reload()
+        }).catch(err => {
+          console.log('Ooops:', err)
+          this.updateTCloadState = false
+        })
+      } catch {
+        console.log('Sorry! Error occured.')
+        this.updateTCloadState = false
+        this.$message.error('Non-transactional error. Please try again later.')
+      }
+    },
+    async sendTnx (txParams) {
+      // Transaction execution in Ethereum from Metamask
+      var txReceipt = await window.ethereum.request({ method: 'eth_sendTransaction', params: [txParams] })
+      return txReceipt
     },
     handleRemove (file, fileList) {
       console.log(file, fileList)
@@ -299,4 +377,12 @@ h4{text-align: center; color: darksalmon;}
 .coreTasksLogo:hover{
     transform: scale(1.1); /* Negative value rotates and decreases size.*/
 }
+
+#tcLoaderDIV {
+  width: 100%;
+  float: left;
+}
+
+.showReturnedHash {color: rgb(143, 186, 221); font-style: italic; font-size: 0.7rem;}
+.notShow {color: rgb(247, 242, 242); font-style: italic; font-size: 0.7rem;}
 </style>
