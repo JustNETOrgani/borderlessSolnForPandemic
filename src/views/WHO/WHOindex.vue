@@ -21,9 +21,8 @@
                         <span>Country Management</span>
                         </template>
                         <el-menu-item-group title="About Countries">
-                        <el-menu-item index="1-1">Register new Country</el-menu-item>
+                        <el-menu-item index="1-1"><el-link :underline="false" style="color:#fff" href="registerCountry">Register new Country</el-link></el-menu-item>
                         <el-menu-item index="1-2"><el-link :underline="false" style="color:#fff" href="revokeCountry">Revoke Country</el-link></el-menu-item>
-                        <el-menu-item index="1-3"><el-link :underline="false" style="color:#fff" href="updateCountry">Country update</el-link></el-menu-item>
                         </el-menu-item-group>
                         <el-menu-item-group title="Covid-19 Statistics">
                         <el-menu-item index="1-4">Statistics</el-menu-item>
