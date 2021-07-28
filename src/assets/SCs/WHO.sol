@@ -7,7 +7,7 @@ contract WHOsc {
     struct registeredCountry{
         string nameOfCountry; // Name of the Country.
         string bcType; // Blockchain type in use by the country.
-        address addrOfSC; // Blockchain address of SC deployed by Country.
+        address addrOfCountry; // Blockchain address of the Country.
         string IPFShash; // IPFS hash of Country's TCs.
 		stateOfCountry cState; // State of the country.
     }
@@ -44,7 +44,7 @@ contract WHOsc {
     
     // Access modifier for Country only.
     modifier RegisteredCountryOnly {
-     require(country[msg.sender].addrOfSC != address(0), "Unregistered country"); // A registered country cannot access another country's data.
+     require(country[msg.sender].addrOfCountry != address(0), "Unregistered country"); // A registered country cannot access another country's data.
      _;
      }
      
@@ -68,7 +68,7 @@ contract WHOsc {
   
     // Function to revoke a country's status.
     function revokeCountry(string memory _nameOfCountry,address _addrOfCountry, string memory reason) WHO public returns (bool){
-		require (country[_addrOfCountry].addrOfSC == _addrOfCountry, "Address of country mismatch");
+		require (country[_addrOfCountry].addrOfCountry == _addrOfCountry, "Address of country mismatch");
 		require (keccak256(abi.encodePacked(country[_addrOfCountry].nameOfCountry)) == keccak256(abi.encodePacked(_nameOfCountry)), "Name of country mismatch");
         country[_addrOfCountry].cState = stateOfCountry.Revoked;
         emit countryRevoked(_addrOfCountry, reason); // Emit event on revoke of country. 
@@ -77,7 +77,7 @@ contract WHOsc {
     
     // Function to re-activate a country's status.
     function reactivateCountry(string memory _nameOfCountry,address _addrOfCountry, string memory reason) WHO public returns (bool){
-		require (country[_addrOfCountry].addrOfSC == _addrOfCountry, "Address of country mismatch");
+		require (country[_addrOfCountry].addrOfCountry == _addrOfCountry, "Address of country mismatch");
 		require (keccak256(abi.encodePacked(country[_addrOfCountry].nameOfCountry)) == keccak256(abi.encodePacked(_nameOfCountry)), "Name of country mismatch");
         country[_addrOfCountry].cState = stateOfCountry.Activated;
         emit countryReActivated(_addrOfCountry, reason); // Emit event on revoke of country. 

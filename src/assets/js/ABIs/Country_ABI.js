@@ -71,12 +71,6 @@ var ABIcountrySC = [
         internalType: 'address',
         name: 'txInitiator',
         type: 'address'
-      },
-      {
-        indexed: false,
-        internalType: 'bytes32',
-        name: 'HID',
-        type: 'bytes32'
       }
     ],
     name: 'patientRecordUpdated',
@@ -90,12 +84,6 @@ var ABIcountrySC = [
         internalType: 'address',
         name: 'txInitiator',
         type: 'address'
-      },
-      {
-        indexed: false,
-        internalType: 'bytes32',
-        name: 'HID',
-        type: 'bytes32'
       }
     ],
     name: 'patientRegistered',
@@ -178,12 +166,12 @@ var ABIcountrySC = [
     inputs: [
       {
         internalType: 'address',
-        name: '_personAddress',
+        name: '_patientAddress',
         type: 'address'
       },
       {
         internalType: 'bytes32',
-        name: '_HID',
+        name: '_PHID',
         type: 'bytes32'
       },
       {
@@ -193,7 +181,7 @@ var ABIcountrySC = [
       },
       {
         internalType: 'bytes32',
-        name: '_covidTnVStatus',
+        name: '_proofOfCovidStatus',
         type: 'bytes32'
       },
       {
@@ -222,12 +210,12 @@ var ABIcountrySC = [
     inputs: [
       {
         internalType: 'address',
-        name: '_personAddress',
+        name: '_patientAddress',
         type: 'address'
       },
       {
         internalType: 'bytes32',
-        name: '_HID',
+        name: '_PHID',
         type: 'bytes32'
       },
       {
@@ -237,7 +225,7 @@ var ABIcountrySC = [
       },
       {
         internalType: 'bytes32',
-        name: '_covidTnVStatus',
+        name: '_proofOfCovidStatus',
         type: 'bytes32'
       },
       {
@@ -360,24 +348,14 @@ var ABIcountrySC = [
   {
     inputs: [
       {
+        internalType: 'bytes32',
+        name: '_PHID',
+        type: 'bytes32'
+      },
+      {
         internalType: 'address',
         name: 'personNewAddr',
         type: 'address'
-      },
-      {
-        internalType: 'bytes32',
-        name: 'HID',
-        type: 'bytes32'
-      },
-      {
-        internalType: 'bytes32',
-        name: 'currenthIPFShash',
-        type: 'bytes32'
-      },
-      {
-        internalType: 'string',
-        name: 'signatureOnIPFShash',
-        type: 'string'
       }
     ],
     name: 'updateBlockchainAddr',
@@ -400,12 +378,12 @@ var ABIcountrySC = [
       },
       {
         internalType: 'bytes32',
-        name: 'HID',
+        name: '_PHID',
         type: 'bytes32'
       },
       {
         internalType: 'bytes32',
-        name: 'covidTnVStatus',
+        name: '_proofOfCovidStatus',
         type: 'bytes32'
       },
       {
@@ -427,7 +405,7 @@ var ABIcountrySC = [
   }
 ]
 
-var contractAddressCountrySC = '0x03BC982EC8A15918b9d855D48fF24dC36f7Ffa76'
+var contractAddressCountrySC = '0x8ab31a5917167D6152fe74B65547934BB4c4Af36'
 
 var suppliedGasCountrySC = 3000000
 

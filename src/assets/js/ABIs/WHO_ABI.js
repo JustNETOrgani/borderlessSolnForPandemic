@@ -111,7 +111,7 @@ var ABI = [
       },
       {
         internalType: 'address',
-        name: 'addrOfSC',
+        name: 'addrOfCountry',
         type: 'address'
       },
       {
@@ -309,7 +309,7 @@ var ABI = [
   }
 ]
 
-var contractAddress = '0xAa5a75346c7e1D6C2da592E849AdA2A4ABDefB05'
+var contractAddress = '0x3aF99950C216E7027c40121B9dcA29e2876dFeE7'
 
 var suppliedGas = 3000000
 
