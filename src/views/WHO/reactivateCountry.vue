@@ -117,7 +117,7 @@ export default {
                   scAddrOfCountry: this.countryRegistForm.scAddrOfCountry,
                   reactivateReason: this.countryRegistForm.reactivateReason
                 }
-                console.log('Revocation data: ', data)
+                console.log('Reactivation data: ', data)
                 var WHOsmartContract = new web3.eth.Contract(ABI, contractAddress, { defaultGas: suppliedGas })
                 console.log('Contract instance created.')
                 // Smart contract and other logic continues.
