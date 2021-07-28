@@ -273,21 +273,11 @@ var ABI = [
     inputs: [
       {
         internalType: 'string',
-        name: '_nameOfCountry',
-        type: 'string'
-      },
-      {
-        internalType: 'address',
-        name: '_addrOfCountry',
-        type: 'address'
-      },
-      {
-        internalType: 'string',
         name: '_newIPFShash',
         type: 'string'
       }
     ],
-    name: 'updateCountryTCs',
+    name: 'updateTChash',
     outputs: [
       {
         internalType: 'bool',
@@ -319,7 +309,7 @@ var ABI = [
   }
 ]
 
-var contractAddress = '0x1Bba9445114488422f7794aBC56F0b0436cEFF9a'
+var contractAddress = '0xAa5a75346c7e1D6C2da592E849AdA2A4ABDefB05'
 
 var suppliedGas = 3000000
 

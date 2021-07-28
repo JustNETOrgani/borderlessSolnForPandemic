@@ -36,9 +36,15 @@ contract WHOsc {
 		numOfCountriesRegistered = 0;
     }
     
-    //Creating an access modifier for contractDeployer
+    // Creating an access modifier for contractDeployer
     modifier WHO {
      require(msg.sender == WHOdir);
+     _;
+     }
+    
+    // Access modifier for Country only.
+    modifier RegisteredCountryOnly {
+     require(country[msg.sender].addrOfSC != address(0), "Unregistered country"); // A registered country cannot access another country's data.
      _;
      }
      
@@ -57,17 +63,6 @@ contract WHOsc {
         country[_addrOfCountry] = registeredCountry(_nameOfCountry, _bcType, _addrOfCountry, _IPFShash, stateOfCountry.Activated);
         numOfCountriesRegistered +=1;
         emit countryRegistered(_addrOfCountry, _nameOfCountry); // Emit event on registeration of a country. 
-        return true;
-    }
-    
-    // Function to update IPFS hash containing country's TCs.
-    function updateCountryTCs(string memory _nameOfCountry,address _addrOfCountry, string memory _newIPFShash) WHO public returns (bool result){
-        // AA checks
-        require (country[_addrOfCountry].addrOfSC == _addrOfCountry, "Address of country mismatch");
-        require (keccak256(abi.encodePacked(country[_addrOfCountry].nameOfCountry)) == keccak256(abi.encodePacked(_nameOfCountry)), "Name of country mismatch");
-        require (keccak256(abi.encodePacked(country[_addrOfCountry].IPFShash)) != keccak256(abi.encodePacked(_newIPFShash)), "IPFS hash already exist");
-        country[_addrOfCountry].IPFShash = _newIPFShash;
-        emit countryTCsUpdated(_addrOfCountry);
         return true;
     }
   
@@ -100,9 +95,17 @@ contract WHOsc {
         return numOfCountriesRegistered;
     }
     
-    // Function to get country details.
-    function getCountryInfo(address _addrOfCountry) public view returns (string memory, string memory, stateOfCountry) {
-        require (country[_addrOfCountry].addrOfSC != address(0), "Unregistered country");
-        return (country[_addrOfCountry].nameOfCountry, country[_addrOfCountry].IPFShash, country[_addrOfCountry].cState);
+    // Functions that registered countries can interact with.
+    // Function to update IPFS hash containing country's TCs.
+    function updateTChash(string memory _newIPFShash) RegisteredCountryOnly public returns (bool result){
+        require (keccak256(abi.encodePacked(country[msg.sender].IPFShash)) != keccak256(abi.encodePacked(_newIPFShash)), "IPFS hash already exist");
+        country[msg.sender].IPFShash = _newIPFShash;
+        emit countryTCsUpdated(msg.sender);
+        return true;
+    }
+    
+    // Function to get country details. Only registered countries can call due to msg.sender usage.
+    function getCountryInfo() RegisteredCountryOnly public view returns (string memory, string memory, stateOfCountry) {
+        return (country[msg.sender].nameOfCountry, country[msg.sender].IPFShash, country[msg.sender].cState);
     }
 }
