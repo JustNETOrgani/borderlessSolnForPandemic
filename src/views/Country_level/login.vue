@@ -23,7 +23,7 @@
 // @ is an alias to /src
 import ethEnabled from '@/assets/js/web3nMetaMask'
 import web3 from '@/assets/js/web3Only'
-import { ABIcountrySC, contractAddressCountrySC, suppliedGasCountrySC } from '@/assets/js/ABIs/Country_ABI'
+import { ABI, contractAddress, suppliedGas } from '@/assets/js/ABIs/WHO_ABI'
 // Import image.
 // import Bg2 from '@/../assets/images/logo2.png'
 
@@ -77,7 +77,7 @@ export default {
     metaMaskLogin () {
       console.log('Attempting MetaMask login via the SC...')
       this.metaMaskLoginBtn = true
-      var countrySC = new web3.eth.Contract(ABIcountrySC, contractAddressCountrySC, { defaultGas: suppliedGasCountrySC })// End of ABi Code from Remix.
+      var countrySC = new web3.eth.Contract(ABI, contractAddress, { defaultGas: suppliedGas })// End of ABi Code from Remix.
       console.log('Contract instance created.')
       // Smart contract and other logic continues.
       try {
