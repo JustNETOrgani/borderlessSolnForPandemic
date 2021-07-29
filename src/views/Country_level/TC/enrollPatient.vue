@@ -4,7 +4,7 @@
           <el-link icon="el-icon-arrow-left" style="font-size:17px;float:left;" @click="backToPrvPg">Previous Page</el-link>
         </div>
         <div class="wrapper" v-loading="loadingPOnboardingPage">
-            <h3>Enroll Patient onto the blockchain</h3>
+            <h3>Enroll Patient onto Borderless</h3>
             <div v-loading="pageLoadingState">
                 <el-row>
                 <el-col :span="6">
@@ -74,15 +74,15 @@
                         <legend>On-chain data</legend>
                             <el-row>
                                 <el-col :span="5" :offset="0">
-                                    <p class="computedLabels">Hash of ID:</p>
+                                    <p class="computedLabels">Hash of Patient's ID:</p>
                                 </el-col>
                                 <el-col :span="5" :offset="0">
                                     <p id="formattedString_hEcDR">{{HashedID}}</p>
                                 </el-col>
                             </el-row>
                             <el-row>
-                                <el-col :span="5" :offset="0">
-                                    <p class="computedLabels">IPFS Hash of EcDR:</p>
+                                <el-col :span="6" :offset="0">
+                                    <p class="computedLabels">IPFS Hash of Enc. Data:</p>
                                 </el-col>
                                 <el-col :span="5" :offset="0">
                                     <p class="formattedString">{{IPFSHashOfhEcDR}}</p>
@@ -90,23 +90,23 @@
                             </el-row>
                             <el-row>
                                 <el-col :span="5" :offset="0">
-                                    <p class="computedLabels">Person address:</p>
-                                </el-col>
-                                <el-col :span="5" :offset="0">
-                                    <p class="formattedString">{{address}}</p>
-                                </el-col>
-                            </el-row>
-                            <el-row>
-                                <el-col :span="5" :offset="0">
-                                    <p class="computedLabels">Person signature:</p>
+                                    <p class="computedLabels">Patient's signature:</p>
                                 </el-col>
                                 <el-col :span="5" :offset="0">
                                     <p class="formattedString">{{signature_substring}}</p>
                                 </el-col>
                             </el-row>
                             <el-row>
+                                <el-col :span="5" :offset="0">
+                                    <p class="computedLabels">TC's Signature:</p>
+                                </el-col>
+                                <el-col :span="5" :offset="0">
+                                    <p class="formattedString">{{signatureTC_substring}}</p>
+                                </el-col>
+                            </el-row>
+                            <el-row>
                               <el-col :span="4" :offset="8">
-                                <el-button type="info" round :loading="personSigGenLoadBtn" @click="getPersonSig()">Get Person signature</el-button>
+                                <el-button type="info" round :loading="personSigGenLoadBtn" @click="getPatientSig()">Get Person signature</el-button>
                               </el-col>
                             </el-row>
                     </fieldset>
@@ -147,7 +147,7 @@ const qrCode = new window.QRCodeStyling({
   width: 200,
   height: 200,
   data: 'https://github.com/JustNETOrgani',
-  image: 'https://user-images.githubusercontent.com/44321289/104082810-0c3de900-5274-11eb-95c1-ace8c24356d4.png',
+  image: 'https://user-images.githubusercontent.com/44321289/127468529-2dd325cf-a2e6-4f62-9dfa-803b66be4f4c.png',
   dotsOptions: {
     color: '#4267b2',
     type: 'rounded'
@@ -166,26 +166,28 @@ export default {
       // Steps.
       active: 0,
       // Dynamic variables.
-      EcDR: '',
-      hEcDR: '',
+      ED: '',
+      hED: '',
       HashedID: '',
       timeStamp: '',
       mkRoot: '',
       IPFSHashOfhEcDR: '',
       hIPFShash: '',
       fullSignature: '',
+      signatureTC_substring: '',
       signature_substring: '',
       address: '',
       currentEthAddress: '',
       personAccount: '',
       pubKeyOfPerson: '',
       AHPkeyGenerated: '',
-      sigOfAHP: '',
+      sigOfTC: '',
       merkeTreeData: [],
       pgAccounts: [],
       nameOfTC: '',
       addrOfTC: '',
       statusOfTC: '',
+      addrOfCountry: '',
       // Loading states
       pageLoadingState: false,
       personOnboardLoadBtn: false,
@@ -271,12 +273,14 @@ export default {
       // Smart contract and other logic continues.
       try {
         countrySC.methods.getTCInfo().call({ from: this.currentEthAddress }).then(res => {
-          this.nameOfTC = res[0]
+          this.addrOfCountry = res[0]
+          // console.log('Addr. of Country: ', this.addrOfCountry)
+          this.nameOfTC = res[1]
           this.addrOfTC = this.currentEthAddress
-          if (res[1] === '1') {
+          if (res[2] === '1') {
             this.statusOfTC = 'Activated'
           }
-          if (res[1] === '2') {
+          if (res[2] === '2') {
             this.statusOfTC = 'Revoked'
             this.$message.warning('Sorry! TC revoked. You cannot enroll Patients.')
           }
@@ -329,18 +333,38 @@ export default {
               // Encrypt data using user public key ---> EcDR
               this.importPubKeyAndEncrypt(JSON.stringify(data)).then(encryptedDataRes => {
                 console.log('EcDR: ', encryptedDataRes)
-                this.EcDR = encryptedDataRes
+                this.ED = encryptedDataRes
                 // Hash encrypted data---> hEcDR.
-                getHash(this.EcDR).then(res => {
-                  this.hEcDR = res
+                getHash(this.ED).then(res => {
+                  this.hED = res
                   // Hash the UserID alone as input to the SC.
                   getHash(data.userID).then(HID => {
                     this.HashedID = HID
                     console.log('Hashed ID: ', this.HashedID)
                     // Prepare data for Merkle Tree.
-                    this.merkeTreeData.push(data.tStatus, data.vStatus, this.timeStamp, this.HashedID)
-                    // AHP signs hEcDR to get signature. --->AHPsignature
-                    this.signatureOfAHP() // Includes push to IPFS.
+                    this.merkeTreeData.push(data.tStatus, data.vStatus, this.timeStamp, this.HashedID, this.addrOfCountry)
+                    // Compute Merkle root.
+                    const merkleToutput = getMerkleRootFromMkTree(this.merkeTreeData)
+                    if (merkleToutput.aProof === true) {
+                      this.mkRoot = merkleToutput.merkleRoot
+                      // Prepare data H(Proof||hED) to be signed by TC.
+                      const dataToSign = this.mkRoot.concat(this.hED)
+                      // Hash to sign.
+                      getHash(dataToSign).then(hashedDataToSign => {
+                        // TC signs Proof to get signature.
+                        this.signatureOfTC(hashedDataToSign) // Includes push to IPFS.
+                      })
+                    } else {
+                      this.$alert('Invalid proof generation of covid records. ', 'Invalid Proof', {
+                        confirmButtonText: 'OK',
+                        callback: action => {
+                          this.$message({
+                            type: 'warning ',
+                            message: 'User informed'
+                          })
+                        }
+                      })
+                    }
                   })
                 })
               // Person signs IPFShash to get signature.
@@ -357,7 +381,7 @@ export default {
         }
       } else {
         this.$message({
-          message: 'Sorry! Person data already processed.',
+          message: 'Sorry! Patient\'s data already processed.',
           type: 'warning'
         })
       }
@@ -367,7 +391,7 @@ export default {
       return accounts
     },
     async getPublicKeyOfPerson () {
-      this.$prompt('Please input public key of Person.', 'Information required', {
+      this.$prompt('Please input public key of Patient.', 'Information required', {
         confirmButtonText: 'OK',
         cancelButtonText: 'Cancel'
       }).then(({ value }) => {
@@ -376,83 +400,70 @@ export default {
         console.log('Public key acquired.')
       }).catch((err) => {
         console.log('User has cancelled.', err)
-        this.$message.error('Sorry! Public key of person required. Reloading...')
+        this.$message.error('Sorry! Public key of Patient required. Reloading...')
         window.location.reload() // Reload page.
       })
     },
-    signatureOfAHP () {
+    signatureOfTC (data) {
       // eslint-disable-next-line no-return-assign
-      signatureGenerator.signatureGen(this.hEcDR, this.currentEthAddress, (sig) => {
-        this.sigOfAHP = sig
-        console.log('AHP sig.: ', this.sigOfAHP)
-        // Push encryptedDataWithAHPsignature to IPFS.
+      signatureGenerator.signatureGen(data, this.currentEthAddress, (sig) => {
+        this.sigOfTC = sig
+        console.log('TC\'s sig.: ', this.sigOfTC)
+        this.signatureTC_substring = (this.sigOfTC.substring(0, 25) + '...' + this.sigOfTC.substr(this.sigOfTC.length - 25)).replace(/"/g, '') // Remove the double quotes.
+        // Push data to IPFS.
         this.pushToIPFShub()
       })
     },
     pushToIPFShub () {
-      const merkleToutput = this.getMerkleRoot()
-      if (merkleToutput.aProof === true) {
-        this.mkRoot = merkleToutput.merkleRoot
-        var encryptedDataToSendToJviaIPFS = JSON.stringify({ timeStamp: this.timeStamp, sigOfAHP: this.sigOfAHP, encryptedData: this.EcDR })
-        // console.log('Connecting to IPFS.')
-        const MyBuffer = window.Ipfs.Buffer
-        var dataToBuffer = MyBuffer.from(encryptedDataToSendToJviaIPFS)
-        // console.log('Buffer conversion done.')
-        // Pre-compute IPFS hash before pushing to IPFS.
-        computeIPFShash(dataToBuffer).then(returnedIPFShash => {
-          ipfs.add(dataToBuffer).then(res => {
+      var encryptedDataToSendToJviaIPFS = JSON.stringify({ timeStamp: this.timeStamp, ProofCovidStatus: this.mkRoot, sigOfTC: this.sigOfTC, encryptedData: this.ED })
+      // console.log('Connecting to IPFS.')
+      const MyBuffer = window.Ipfs.Buffer
+      var dataToBuffer = MyBuffer.from(encryptedDataToSendToJviaIPFS)
+      // console.log('Buffer conversion done.')
+      // Pre-compute IPFS hash before pushing to IPFS.
+      computeIPFShash(dataToBuffer).then(returnedIPFShash => {
+        ipfs.add(dataToBuffer).then(res => {
           // Confirm returned IPFS matches precomputed hash.
-            if (returnedIPFShash === res[0].hash) {
+          if (returnedIPFShash === res[0].hash) {
             // Match confirmed
-              this.IPFSHashOfhEcDR = res[0].hash
-              // Hash IPFS hash to be stored in SC.
-              getHash(this.IPFSHashOfhEcDR).then(hashOfIPFShash => {
-                this.hIPFShash = hashOfIPFShash
-                console.log('Data upload to IPFS sucessful')
-                this.$message('File upload to IPFS successful.')
-                this.active += 1 // Increment step by 1 to move to next step.
-                this.personOnboardLoadBtn = false
-                if (this.accountChangeStatus === false) {
-                  this.accountSwitchDialogVisible = true
-                  // Change state of processData button.
-                  this.processDataBtnState = true
-                }
-              })
-            } else {
-              this.$message({
-                message: 'IPFS mismatch! Possible MiTM attack',
-                type: 'warning'
-              })
-              this.$alert('Possible MiTM attack! IPFS mismatch! ', 'IPFS hash mismatch', {
-                confirmButtonText: 'OK',
-                callback: action => {
-                  this.$message({
-                    type: 'warning ',
-                    message: 'User informed'
-                  })
-                }
-              })
-            }
-          })
-        })
-      } else {
-        this.$alert('Invalid proof generation of covid records. ', 'Invalid Proof', {
-          confirmButtonText: 'OK',
-          callback: action => {
+            this.IPFSHashOfhEcDR = res[0].hash
+            // Hash IPFS hash to be stored in SC.
+            getHash(this.IPFSHashOfhEcDR).then(hashOfIPFShash => {
+              this.hIPFShash = hashOfIPFShash
+              console.log('Data upload to IPFS sucessful')
+              this.$message('File upload to IPFS successful.')
+              this.active += 1 // Increment step by 1 to move to next step.
+              this.personOnboardLoadBtn = false
+              if (this.accountChangeStatus === false) {
+                this.accountSwitchDialogVisible = true
+                // Change state of processData button.
+                this.processDataBtnState = true
+              }
+            })
+          } else {
             this.$message({
-              type: 'warning ',
-              message: 'User informed'
+              message: 'IPFS mismatch! Possible MiTM attack',
+              type: 'warning'
+            })
+            this.$alert('Possible MiTM attack! IPFS mismatch! ', 'IPFS hash mismatch', {
+              confirmButtonText: 'OK',
+              callback: action => {
+                this.$message({
+                  type: 'warning ',
+                  message: 'User informed'
+                })
+              }
             })
           }
         })
-      }
+      })
     },
-    getPersonSig () {
+    getPatientSig () {
       if (this.getPersonSigBtnState === false) {
-        if (this.hEcDR !== '' && this.IPFSHashOfhEcDR !== '') {
+        if (this.hED !== '' && this.IPFSHashOfhEcDR !== '') {
           if (this.personAccount !== '') {
             this.personSigGenLoadBtn = true
-            this.signatureOfPerson()
+            this.signatureOfPatient()
           } else {
             this.$message({
               message: 'Account switching not done. Switch account now.',
@@ -469,7 +480,7 @@ export default {
         this.$message.error('Sorry! On-chain data already generated')
       }
     },
-    signatureOfPerson () {
+    signatureOfPatient () {
       console.log('Signing using address: ', this.personAccount, 'on data: ', this.IPFSHashOfhEcDR)
       // eslint-disable-next-line no-return-assign
       signatureGenerator.signatureGen(this.IPFSHashOfhEcDR, this.personAccount, (sig) => {
@@ -506,7 +517,7 @@ export default {
       // Update the QR code instance.
       // Concatenate ipfs hash and hashed user ID.
       qrCode.update({
-        data: 'https://ipfs.io/ipfs/' + userIPFShash
+        data: userIPFShash + this.addrOfCountry
       })
       console.log('Appending QR code to DOM.')
       document.getElementById('overlay').style.display = 'block'
@@ -516,10 +527,6 @@ export default {
     },
     qrCodeDivDisappear () {
       document.getElementById('overlay').style.display = 'none'
-    },
-    getMerkleRoot () {
-      // This generates a root hash composed of tStatus, vStatus, timeStamp and userID.
-      return getMerkleRootFromMkTree(this.merkeTreeData)
     },
     async sendTnx (txParams) {
       // Transaction execution in Ethereum from Metamask
@@ -534,6 +541,10 @@ export default {
           if (this.anchorOnBlockBtnState === false) {
             // Check all needed smart contract-related data have been acquired.
             if (this.HashedID !== '' && this.IPFSHashOfhEcDR !== '' && this.hIPFShash !== '' && this.personAccount !== '' && this.fullSignature !== '') {
+              var vState = 0
+              if (this.onboardPerson.vStatus === 'vaccinated') {
+                vState = 1
+              }
               console.log('Sending to blockchain')
               this.submitLoadBtn = true
               var countrySC = new web3.eth.Contract(ABIcountrySC, contractAddressCountrySC, { defaultGas: suppliedGasCountrySC })
@@ -544,7 +555,7 @@ export default {
                 const txParams = {
                   from: this.currentEthAddress,
                   to: contractAddressCountrySC,
-                  data: countrySC.methods.personOnboarding(this.pgAccounts[1], this.HashedID, this.hIPFShash, this.mkRoot, this.fullSignature).encodeABI()
+                  data: countrySC.methods.patientRegistration(this.pgAccounts[1], this.HashedID, this.hIPFShash, this.mkRoot, vState, this.fullSignature).encodeABI()
                 }
                 this.sendTnx(txParams).then(tnxReceipt => {
                   console.log('Transaction receipt: ', tnxReceipt)
