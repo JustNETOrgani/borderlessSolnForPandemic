@@ -232,7 +232,7 @@ export default {
           if (res === true) {
             console.log('Call to SC successful')
             // Proceed to get user Public key.
-            this.getPublicKeyOfPerson()
+            this.getPublicKeyOfPatient()
           } else {
             console.log('Call to SC failed.')
           }
@@ -271,31 +271,40 @@ export default {
       var countrySC = new web3.eth.Contract(ABIcountrySC, contractAddressCountrySC, { defaultGas: suppliedGasCountrySC })// End of ABi Code from Remix.
       console.log('Contract instance created.')
       // Smart contract and other logic continues.
-      try {
-        countrySC.methods.getTCInfo().call({ from: this.currentEthAddress }).then(res => {
-          this.addrOfCountry = res[0]
-          // console.log('Addr. of Country: ', this.addrOfCountry)
-          this.nameOfTC = res[1]
-          this.addrOfTC = this.currentEthAddress
-          if (res[2] === '1') {
-            this.statusOfTC = 'Activated'
-          }
-          if (res[2] === '2') {
-            this.statusOfTC = 'Revoked'
-            this.$message.warning('Sorry! TC revoked. You cannot enroll Patients.')
-          }
-          this.pageLoadingState = false
-          return true
-        }).catch(err => {
-          console.log('Error calling SC: ', err)
-          this.$message.error('Sorry! Unknown TC.')
-          return false
-        })
-      } catch {
-        console.log('Sorry! Error occured.')
+      countrySC.methods.getTCInfo().call({ from: this.currentEthAddress }).then(res => {
+        this.addrOfCountry = res[0]
+        // console.log('Addr. of Country: ', this.addrOfCountry)
+        this.nameOfTC = res[1]
+        this.addrOfTC = this.currentEthAddress
+        if (res[2] === '1') {
+          this.statusOfTC = 'Activated'
+        }
+        if (res[2] === '2') {
+          this.statusOfTC = 'Revoked'
+          this.$message.warning('Sorry! TC revoked. You cannot enroll Patients.')
+        }
+        this.pageLoadingState = false
+      }).catch(err => {
+        console.log('Error calling SC: ', err)
         this.$message.error('Sorry! Unknown TC.')
         return false
-      }
+      })
+      return true
+    },
+    getPublicKeyOfPatient () {
+      console.log('Inside Pub.Key acquisition.')
+      this.$prompt('Please input public key of Patient.', 'Information required', {
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel'
+      }).then(({ value }) => {
+        // Valid Public key before proceeding.
+        this.pubKeyOfPerson = value
+        console.log('Public key acquired.')
+      }).catch((err) => {
+        console.log('User has cancelled.', err)
+        this.$message.error('Sorry! Public key of Patient required. Reloading...')
+        window.location.reload() // Reload page.
+      })
     },
     backToPrvPg () {
       this.$router.push('tcLanding')
@@ -389,20 +398,6 @@ export default {
     async getAccount () {
       var accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
       return accounts
-    },
-    async getPublicKeyOfPerson () {
-      this.$prompt('Please input public key of Patient.', 'Information required', {
-        confirmButtonText: 'OK',
-        cancelButtonText: 'Cancel'
-      }).then(({ value }) => {
-        // Valid Public key before proceeding.
-        this.pubKeyOfPerson = value
-        console.log('Public key acquired.')
-      }).catch((err) => {
-        console.log('User has cancelled.', err)
-        this.$message.error('Sorry! Public key of Patient required. Reloading...')
-        window.location.reload() // Reload page.
-      })
     },
     signatureOfTC (data) {
       // eslint-disable-next-line no-return-assign
