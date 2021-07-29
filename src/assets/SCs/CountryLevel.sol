@@ -96,8 +96,8 @@ contract countrySC{
     }
     
     // Function to get TC details. Only registered TCs can call due to msg.sender usage.
-    function getTCInfo() TCsOnly public view returns (string memory, stateOfTC) {
-        return (TC[msg.sender].TC_name, TC[msg.sender].tcState);
+    function getTCInfo() TCsOnly public view returns (address, string memory, stateOfTC) {
+        return (HMdir, TC[msg.sender].TC_name, TC[msg.sender].tcState);
     }
     
     // Function to register patient.
@@ -161,5 +161,10 @@ contract countrySC{
         // Update person address.
         patient[_PHID].patientAddress = personNewAddr;
         return true;
+    }
+    
+    // Function to get public info.
+    function getPublicStatistics() public view returns (uint256, uint256, uint256) {
+        return (totalTested, totalRecordUpdate, totalVaccinated);
     }
 }

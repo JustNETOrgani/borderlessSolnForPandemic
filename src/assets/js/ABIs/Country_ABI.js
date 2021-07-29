@@ -133,8 +133,36 @@ var ABIcountrySC = [
   },
   {
     inputs: [],
+    name: 'getPublicStatistics',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256'
+      },
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256'
+      },
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256'
+      }
+    ],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [],
     name: 'getTCInfo',
     outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address'
+      },
       {
         internalType: 'string',
         name: '',
@@ -392,7 +420,7 @@ var ABIcountrySC = [
   }
 ]
 
-var contractAddressCountrySC = '0x8A32022dae7d85b752545a3483FeCFC0e3A2186E'
+var contractAddressCountrySC = '0x36c6917b4c6C61DC2B9F7a05eAc00effD32D4A2a'
 
 var suppliedGasCountrySC = 3000000
 
