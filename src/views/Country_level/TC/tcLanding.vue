@@ -122,12 +122,12 @@ export default {
       // Smart contract and other logic continues.
       try {
         countrySC.methods.getTCInfo().call({ from: this.currentAddress }).then(res => {
-          this.nameOfTC = res[0]
+          this.nameOfTC = res[1]
           this.addrOfTC = this.currentAddress
-          if (res[1] === '1') {
+          if (res[2] === '1') {
             this.statusOfTC = 'Activated'
           }
-          if (res[1] === '2') {
+          if (res[2] === '2') {
             this.statusOfTC = 'Revoked'
           }
           this.pageLoadingState = false
