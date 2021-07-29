@@ -98,7 +98,7 @@ export default {
         window.location.href = 'Country_level/TC/login'
       }
       if (selectedIndex === 3) {
-        console.log('4 selected')
+        window.location.href = 'Patient/patientCentre'
       }
       if (selectedIndex === 4) {
         console.log('5 selected')

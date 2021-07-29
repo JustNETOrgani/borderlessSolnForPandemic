@@ -129,10 +129,27 @@ const routes = [
       requireAuth: true,
       userType: 'TC'
     }
-  }
+  },
+  {
+    path: '/Country_level/TC/enrollPatient',
+    name: 'countryTCEnrollingPatient',
+    component: () => import('@/views/Country_level/TC/enrollPatient.vue'),
+    meta: {
+      requireAuth: true,
+      userType: 'TC'
+    }
+  },
   // Verifiers.
 
   // Person.
+  {
+    path: '/Patient/patientCentre',
+    name: 'patientArea',
+    component: () => import('@/views/Patient/patientCentre.vue'),
+    meta: {
+      requireAuth: false
+    }
+  }
 ]
 const router = new VueRouter({
   mode: 'history',
