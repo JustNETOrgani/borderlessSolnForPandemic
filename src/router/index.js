@@ -139,6 +139,15 @@ const routes = [
       userType: 'TC'
     }
   },
+  {
+    path: '/Country_level/TC/updatePatientInfo',
+    name: 'countryTCupdatePatientInfo',
+    component: () => import('@/views/Country_level/TC/updatePatientInfo.vue'),
+    meta: {
+      requireAuth: true,
+      userType: 'TC'
+    }
+  },
   // Verifiers.
 
   // Person.
