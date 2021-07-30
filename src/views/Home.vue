@@ -66,9 +66,9 @@ export default {
           image: 'https://user-images.githubusercontent.com/44321289/126855889-760d3f87-5210-4b46-94e5-4c01a2079c55.png'
         },
         {
-          title: 'Loading...',
-          author: 'Yet to come',
-          image: 'http://www.gstatic.com/webp/gallery/1.webp'
+          title: 'Verification',
+          author: 'Privacy-aware verification',
+          image: 'https://user-images.githubusercontent.com/44321289/127649704-d006947a-0f2a-4be5-87a0-06e7631e781c.jpg'
         }
       ]
     }

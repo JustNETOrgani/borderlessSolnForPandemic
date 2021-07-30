@@ -149,7 +149,14 @@ const routes = [
     }
   },
   // Verifiers.
-
+  {
+    path: '/Verifiers/inCountryVerify',
+    name: 'inCountryVerification',
+    component: () => import('@/views/Verifiers/inCountryVerify.vue'),
+    meta: {
+      requireAuth: false
+    }
+  },
   // Person.
   {
     path: '/Patient/patientCentre',
