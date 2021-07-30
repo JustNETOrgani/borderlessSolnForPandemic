@@ -150,6 +150,14 @@ const routes = [
   },
   // Verifiers.
   {
+    path: '/Verifiers/verifierLanding',
+    name: 'verifierLandingPage',
+    component: () => import('@/views/Verifiers/verifierLanding.vue'),
+    meta: {
+      requireAuth: false
+    }
+  },
+  {
     path: '/Verifiers/inCountryVerify',
     name: 'inCountryVerification',
     component: () => import('@/views/Verifiers/inCountryVerify.vue'),

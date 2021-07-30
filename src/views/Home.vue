@@ -101,7 +101,7 @@ export default {
         window.location.href = 'Patient/patientCentre'
       }
       if (selectedIndex === 4) {
-        console.log('5 selected')
+        window.location.href = 'Verifiers/verifierLanding'
       }
     }
   },
