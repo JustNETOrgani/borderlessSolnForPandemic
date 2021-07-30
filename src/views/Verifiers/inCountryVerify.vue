@@ -118,7 +118,7 @@ export default {
       dialogVisible: false,
       rules: {
         ifpsHash: [
-          { required: true, message: 'Please input IPFS hash of the paper', trigger: 'blur' },
+          { required: true, message: 'Please input IPFS hash of the Encrypted Covid-19 Data', trigger: 'blur' },
           { min: 46, message: 'Length should be at least 46', trigger: 'blur' }
         ]
       }
@@ -194,7 +194,6 @@ export default {
         type: 'success'
       })
       var retrievedIPFShash = (qrCodeMessage.substr(qrCodeMessage.length - 46)).replace(/"/g, '') // Get last 46 characters and Remove the double quotes.
-      // var hashedID = (qrCodeMessage.substr(qrCodeMessage.length - 66)).replace(/"/g, '') // Get last 66 characters and Remove the double quotes.
       if (this.ipfsInputValidation(retrievedIPFShash) !== 0) {
         this.scanPersonQRcodeLoadBtn = false
         console.log('Retrieved ipfs hash: ', retrievedIPFShash)
@@ -208,7 +207,7 @@ export default {
         })
       } else {
         this.$message({
-          message: 'Sorry! Invalid IPFS hash received from QR code. Please, scan BlockCovid compatible QR code.',
+          message: 'Sorry! Invalid IPFS hash received from QR code. Please, scan Borderless compatible QR code.',
           type: 'warning'
         })
       }
@@ -384,8 +383,8 @@ export default {
         } else {
           this.VerifyResult[keyToUse].status = 'error'
           this.verifyBtnLoadState = false
-          console.log('Invalid encrypted data from IPFS for Blockcovid.')
-          this.$message.error('Invalid encrypted data from IPFS for Blockcovid.')
+          console.log('Invalid encrypted data from IPFS for Borderless.')
+          this.$message.error('Invalid encrypted data from IPFS for Borderless.')
         }
       }).catch(err => {
         console.log('IPFS error: ', err)
