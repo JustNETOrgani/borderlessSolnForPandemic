@@ -190,6 +190,7 @@ export default {
       merkeTreeData: [],
       // Loading states
       personOnboardLoadBtn: false,
+      pageLoadingState: false,
       loadingPOnboardingPage: true,
       personSigGenLoadBtn: false,
       submitLoadBtn: false,
@@ -231,7 +232,7 @@ export default {
           if (res === true) {
             console.log('Call to SC successful')
             // Proceed to get user Public key.
-            // this.getPublicKeyOfPatient()
+            this.getPublicKeyOfPatient()
           } else {
             console.log('Call to SC failed.')
           }
@@ -578,7 +579,7 @@ export default {
             // Check all needed smart contract-related data have been acquired.
             if (this.HashedID !== '' && this.IPFSHashOfhEcDR !== '' && this.hIPFShash !== '' && this.personAccount !== '' && this.fullSignature !== '') {
               var vState = 0
-              if (this.onboardPerson.vStatus === 'vaccinated') {
+              if (this.updatePerson.vStatus === 'vaccinated') {
                 vState = 1
               }
               console.log('Sending to blockchain')
