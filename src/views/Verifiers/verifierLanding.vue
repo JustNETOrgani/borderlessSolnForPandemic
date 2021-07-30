@@ -68,6 +68,7 @@ export default {
       if (this.vTypeForm.vType === 'borderless') {
         console.log('Borderless verification selected')
         this.dialogFormVisible = false
+        this.$router.push('borderlessVerify')
       }
       if (this.vTypeForm.vType === 'inCountry') {
         console.log('In country verification selected')

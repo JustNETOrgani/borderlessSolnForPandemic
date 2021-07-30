@@ -165,6 +165,14 @@ const routes = [
       requireAuth: false
     }
   },
+  {
+    path: '/Verifiers/borderlessVerify',
+    name: 'borderlessVerification',
+    component: () => import('@/views/Verifiers/borderlessVerify.vue'),
+    meta: {
+      requireAuth: false
+    }
+  },
   // Person.
   {
     path: '/Patient/patientCentre',
