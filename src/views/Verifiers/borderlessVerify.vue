@@ -82,8 +82,8 @@
 
 <script>
 import ethEnabled from '@/assets/js/web3nMetaMask'
-// import * as signatureGenerator from '@/assets/js/sigHelperFns'
-// import getHash from '@/assets/js/hashFunc'
+import recoveredAddrFromSig from '@/assets/js/recoverSignerAddr'
+import getHash from '@/assets/js/hashFunc'
 import getMerkleRootFromMkTree from '@/assets/js/getMerkleRootOfData'
 import web3 from '@/assets/js/web3Only'
 import { ABI, contractAddress, suppliedGas } from '@/assets/js/ABIs/WHO_ABI' // WHO SC.
@@ -100,7 +100,7 @@ export default {
       },
       countryAddr: '',
       enteredIPFShash: '',
-      hEcDR: '',
+      hED: '',
       sigOnIPFShash: '',
       fullSignature: '',
       currentAddress: '',
@@ -335,24 +335,70 @@ export default {
                   // console.log('Encrypted data: ', EcDRwithSig)
                   currentStep += 1
                   keyToUse = Object.keys(this.VerifyResult)[currentStep]
-                  // Get country's TC file.
-                  ipfs.cat(ipfsHashOfCountrysTCdoc).then(retrievedData => {
-                    console.log('JSON File of TC', JSON.parse(retrievedData.toString()))
+                  // Check Proof
+                  // Check proof equality with IPFS data.
+                  if (this.merkleRoot[0] === EcDRwithSig.ProofCovidStatus || this.merkleRoot[1] === EcDRwithSig.ProofCovidStatus) {
+                    // Match found. ProofCovidStatus can be used.
                     this.VerifyResult[keyToUse].status = 'success'
-                    // Increment step.
+                    console.log('Proof check passed')
+                    // Get country's TC file.
                     currentStep += 1
                     keyToUse = Object.keys(this.VerifyResult)[currentStep]
-                    // Check Proof
-                    // Verify signature authenticity.
-                  }).catch(err => {
-                    console.log('IPFS error in getting TC file: ', err)
-                    this.$message.error('Oops, Error pulling TC data from IPFS.')
+                    // Get TC file from IPFS.
+                    ipfs.cat(ipfsHashOfCountrysTCdoc).then(tcDataFileFromIPFS => {
+                      console.log('JSON File of TC', JSON.parse(tcDataFileFromIPFS.toString()))
+                      var tcData = JSON.parse(tcDataFileFromIPFS.toString())
+                      this.VerifyResult[keyToUse].status = 'success'
+                      // Increment step.
+                      currentStep += 1
+                      keyToUse = Object.keys(this.VerifyResult)[currentStep]
+                      // Prepare data H(Proof||hED) to be signed by TC.
+                      getHash(EcDRwithSig.encryptedData).then(res => {
+                        this.hED = res
+                        const dataSignedbyTC = EcDRwithSig.ProofCovidStatus.concat(this.hED)
+                        // Hash to sign.
+                        getHash(dataSignedbyTC).then(hashedDataOneSigned => {
+                          // Verify signature authenticity by recovering signer's address from signature.
+                          const signature = EcDRwithSig.sigOfTC.replace(/"/g, '') // Remove the double quotes.
+                          const recoveredAddrOfTC = recoveredAddrFromSig(hashedDataOneSigned, signature)
+                          console.log('Address recovered: ', recoveredAddrOfTC)
+                          // Check if address exist in patient's country's TC file.
+                          if (Object.values(tcData).includes(web3.utils.toChecksumAddress(recoveredAddrOfTC))) {
+                            // TC signature verification passed.
+                            console.log('Signature verification passed.')
+                            this.VerifyResult[keyToUse].status = 'success'
+                            this.$notify({
+                              title: 'Successful proof',
+                              message: 'Successful verification',
+                              type: 'success'
+                            })
+                            this.verifyBtnLoadState = false
+                            this.getUserChoice()
+                          } else {
+                            this.VerifyResult[keyToUse].status = 'error'
+                            this.verifyBtnLoadState = false
+                            console.log('TC signature verification failed.')
+                            this.$message.error('TC signature verification failed.')
+                            this.VerifyResult[keyToUse].status = 'error'
+                            this.$notify.error({
+                              title: 'Failed proof',
+                              message: 'Sorry! You failed verification.'
+                            })
+                            this.getUserChoice()
+                          }
+                        })
+                      })
+                    }).catch(err => {
+                      console.log('IPFS error in getting TC file: ', err)
+                      this.$message.error('Oops, Error pulling TC data from IPFS.')
+                      this.verifyBtnLoadState = false
+                    })
+                  } else {
+                    this.VerifyResult[keyToUse].status = 'error'
                     this.verifyBtnLoadState = false
-                  })
-                  // Check proof generated.
-
-                  // Change status.
-                  this.VerifyResult[keyToUse].status = 'success'
+                    console.log('Proof check failed.')
+                    this.$message.error('Failed proof check.')
+                  }
                 } else {
                   this.$alert('Invalid proof generation of covid records. ', 'Invalid Proof', {
                     confirmButtonText: 'OK',
@@ -365,8 +411,6 @@ export default {
                   })
                 }
               } else {
-                currentStep += 1
-                keyToUse = Object.keys(this.VerifyResult)[currentStep]
                 this.VerifyResult[keyToUse].status = 'error'
                 this.$alert('Time above 72 hrs threshold. ', 'Timestamp alert', {
                   confirmButtonText: 'OK',
@@ -381,8 +425,8 @@ export default {
             } else {
               this.VerifyResult[keyToUse].status = 'error'
               this.verifyBtnLoadState = false
-              console.log('Invalid encrypted data from IPFS for Blockcovid.')
-              this.$message.error('Invalid encrypted data from IPFS for Blockcovid.')
+              console.log('Invalid encrypted data from IPFS for Borderless.')
+              this.$message.error('Invalid encrypted data from IPFS for Borderless.')
             }
           }).catch(err => {
             console.log('IPFS error: ', err)
@@ -395,44 +439,6 @@ export default {
       }).catch(err => {
         console.log('Country is not activated', err)
         this.$message.error('Sorry! Country is not activated.')
-      })
-    },
-    continueVerificationOnchain (currentStep, hIPFShash, merkeRoot, hashedID) {
-      // Verify on-chain
-      console.log('Verifying on-chain.')
-      var WHOSC = new web3.eth.Contract(ABI, contractAddress, { defaultGas: suppliedGas })// End of ABi Code from Remix.
-      console.log('Contract instance created.')
-      currentStep += 1
-      var keyToUse = Object.keys(this.VerifyResult)[currentStep]
-      // Smart contract and other logic continues.
-      // This is call operation. Any account can be used. It cost zero Eth.
-      // Run loop on pre-defined assertions.
-      WHOSC.methods.verificationTime(this.countryAddr).call({ from: this.currentAddress }).then(res => {
-        // console.log('Response from Contract: ', res)
-        if (res === true) {
-          // Patient passed. Display status.
-          this.VerifyResult[keyToUse].status = 'success'
-          this.$notify({
-            title: 'Successful proof',
-            message: 'You passed blockchain proof',
-            type: 'success'
-          })
-          this.verifyBtnLoadState = false
-          console.timeEnd('time')
-        } else {
-          // Person failed proof verification.
-          console.log('Failed proof')
-          // Change status.
-          this.VerifyResult[keyToUse].status = 'error'
-          this.$notify.error({
-            title: 'Failed proof',
-            message: 'Sorry! You failed blockchain verification.'
-          })
-          this.getUserChoice()
-        }
-      }).catch(err => {
-        console.log('Error occurred during blockchain verification', err)
-        this.$message.error('Sorry! Blockchain error')
       })
     },
     ipfsInputValidation (input) {
@@ -459,7 +465,7 @@ export default {
           type: 'info',
           message: 'Redirecting to home page'
         })
-        this.$router.push('/')
+        this.$router.push('verifierLanding')
       })
     },
     convertUnixTimestamp (unixTimestamp) {
