@@ -311,7 +311,7 @@ export default {
       return accounts
     },
     backToPrvPg () {
-      this.$router.push('healthFacIndexPg')
+      this.$router.push('tcLanding')
     },
     handleOpen (key, keyPath) {
       console.log(key, keyPath)
