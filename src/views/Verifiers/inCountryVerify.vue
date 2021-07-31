@@ -99,6 +99,7 @@ export default {
       sigOnIPFShash: '',
       fullSignature: '',
       currentAddress: '',
+      addOfInCountry: '',
       VerifyResult: [],
       scResponse: [],
       errorCount: 0,
@@ -131,6 +132,19 @@ export default {
       this.getAccount().then(accounts => {
         this.currentAddress = accounts[0]
         console.log('Current account: ', this.currentAddress)
+        // Request Verifier's country's address. // One time request in the natural sense.
+        this.$prompt('Please input country\'s address.', 'Verifier Information required', {
+          confirmButtonText: 'OK',
+          cancelButtonText: 'Cancel'
+        }).then(({ value }) => {
+        // Valid Public key before proceeding.
+          this.addOfInCountry = value
+          console.log('Country address acquired.')
+        }).catch((err) => {
+          console.log('User has cancelled.', err)
+          this.$message.error('Sorry! Public key of person required. Reloading...')
+          window.location.reload() // Reload page.
+        })
       })
     }
   },
@@ -285,8 +299,6 @@ export default {
           this.VerifyResult[keyToUse].status = 'success'
           // Check timestamp.
           const timeStamp = EcDRwithSig.timeStamp
-          // const testLatetimeStamp = 1619218659
-          // const convertedTimeStamp = this.convertUnixTimestamp(timeStamp)
           const daysElapsed = this.verifyTimestampValidity(timeStamp)
           if (daysElapsed <= 72) {
             // Timestamp is within last 72 hours.
@@ -295,8 +307,8 @@ export default {
             keyToUse = Object.keys(this.VerifyResult)[currentStep]
             this.VerifyResult[keyToUse].status = 'success'
             // Construct merkle root.
-            this.merkleObject.first.push(this.userAssertions.green[0], this.userAssertions.green[1], timeStamp, hashedID) // All four needed acquired.
-            this.merkleObject.second.push(this.userAssertions.yellow[0], this.userAssertions.yellow[1], timeStamp, hashedID) // All four needed acquired.
+            this.merkleObject.first.push(this.userAssertions.green[0], this.userAssertions.green[1], timeStamp, hashedID, this.addOfInCountry) // All four needed acquired.
+            this.merkleObject.second.push(this.userAssertions.yellow[0], this.userAssertions.yellow[1], timeStamp, hashedID, this.addOfInCountry) // All four needed acquired.
             // Generate Merkle tree.
             const merkleToutputOne = this.getMerkleTree(this.merkleObject.first)
             const merkleToutputTwo = this.getMerkleTree(this.merkleObject.second)
@@ -402,10 +414,10 @@ export default {
       // Smart contract and other logic continues.
       // This is call operation. Any account can be used. It cost zero Eth.
       // Run loop on pre-defined assertions.
-      countrySC.methods.verifyPersonStatus(hIPFShash, hashedID, merkeRoot[0], this.fullSignature).call({ from: this.currentAddress }).then(resOne => {
+      countrySC.methods.verifyUserStatus(hIPFShash, hashedID, merkeRoot[0], this.fullSignature).call({ from: this.currentAddress }).then(resOne => {
         // console.log('First response from Contract: ', resOne)
         this.scResponse.push(resOne)
-        countrySC.methods.verifyPersonStatus(hIPFShash, hashedID, merkeRoot[1], this.fullSignature).call({ from: this.currentAddress }).then(resTwo => {
+        countrySC.methods.verifyUserStatus(hIPFShash, hashedID, merkeRoot[1], this.fullSignature).call({ from: this.currentAddress }).then(resTwo => {
           // console.log('Second response from Contract: ', resTwo)
           this.scResponse.push(resTwo)
           if (this.scResponse[0] === true || this.scResponse[1] === true) {
