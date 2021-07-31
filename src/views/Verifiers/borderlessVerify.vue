@@ -9,7 +9,7 @@
               <img id="verifyImg" src="../../assets/imgs/verify.png" />
             </el-col>
           </el-row>
-            <h2>Covid-19 test/vaccination verification</h2>
+            <h2>Borderless COVID-19 test/vaccination verification</h2>
             <p>Travel Safely Amid Pandemic Courtesy Blockchain Technology</p>
             <el-row>
                 <el-col :span="20" :offset="0">
@@ -82,11 +82,11 @@
 
 <script>
 import ethEnabled from '@/assets/js/web3nMetaMask'
-import * as signatureGenerator from '@/assets/js/sigHelperFns'
-import getHash from '@/assets/js/hashFunc'
+// import * as signatureGenerator from '@/assets/js/sigHelperFns'
+// import getHash from '@/assets/js/hashFunc'
 import getMerkleRootFromMkTree from '@/assets/js/getMerkleRootOfData'
 import web3 from '@/assets/js/web3Only'
-import { ABIcountrySC, contractAddressCountrySC, suppliedGasCountrySC } from '@/assets/js/ABIs/Country_ABI'
+import { ABI, contractAddress, suppliedGas } from '@/assets/js/ABIs/WHO_ABI' // WHO SC.
 const ipfs = new window.Ipfs()
 
 export default {
@@ -105,7 +105,6 @@ export default {
       fullSignature: '',
       currentAddress: '',
       VerifyResult: [],
-      scResponse: [],
       errorCount: 0,
       userAssertions: { green: ['Negative', 'vaccinated'], yellow: ['Negative', 'Not Vaccinated'] },
       accountChangeStatus: false,
@@ -206,14 +205,14 @@ export default {
       var retrievedIPFShash = (qrCodeMessage.substr(0, 46)).replace(/"/g, '') // Get the first 46 characters and Remove the double quotes.
       if (this.ipfsInputValidation(retrievedIPFShash) !== 0) {
         this.scanPersonQRcodeLoadBtn = false
-        console.log('Retrieved ipfs hash: ', retrievedIPFShash)
+        // console.log('Retrieved ipfs hash: ', retrievedIPFShash)
         this.$prompt('Please input hash of your ID.', 'Information required', {
           confirmButtonText: 'OK',
           cancelButtonText: 'Cancel'
         }).then(({ value }) => {
           console.log('Entered hashed ID: ', value)
           // Person verification process.
-          this.performVerification(retrievedIPFShash, value, this.countryAddr)
+          this.performVerification(retrievedIPFShash, value)
         })
       } else {
         this.$message({
@@ -239,7 +238,8 @@ export default {
                 pCountryAddr: this.verificationForm.addOfPatientCountry
               }
               console.log('Data: ', data)
-              this.performVerification(data.ipfsHash, data.hashedID, data.pCountryAddr)
+              this.countryAddr = data.pCountryAddr
+              this.performVerification(data.ipfsHash, data.hashedID)
             } else {
               console.log('Submission error.')
               this.verifyBtnLoadState = false
@@ -270,180 +270,166 @@ export default {
       const hoursElapsed = Math.floor(tDiff / 1000 / 60 / 60)
       return hoursElapsed
     },
-    performVerification (ipfsHash, hashedID, addrOfPatientsCountry) {
+    performVerification (ipfsHash, hashedID) {
       console.log('Verification initialized...')
       console.time('time')
       this.enteredIPFShash = ipfsHash
       // Create array object for steps.
       this.VerifyResult = {
-        1: { step: '1', name: 'Getting data from IPFS', status: 'wait' },
+        1: { step: '1', name: 'Country\'s status', status: 'wait' },
         2: { step: '2', name: 'Timestamp check', status: 'wait' },
         3: { step: '3', name: 'Creating Proof', status: 'wait' },
-        4: { step: '4', name: 'Hashing data', status: 'wait' },
-        5: { step: '5', name: 'Optional signature request', status: 'wait' },
-        6: { step: '6', name: 'Verifying in Smart Contract', status: 'wait' }
+        4: { step: '4', name: 'Accessing Country\'s TC File', status: 'wait' },
+        5: { step: '5', name: 'Checking Proof', status: 'wait' },
+        6: { step: '6', name: 'Verifying Signature', status: 'wait' }
       }
       this.dialogVisible = true
       // Steps ---> TODO
       var currentStep = 0
       var keyToUse = Object.keys(this.VerifyResult)[currentStep]
-      // Acquire encrypted data on IPFS.
-      ipfs.cat(this.enteredIPFShash).then(retrievedData => {
-        console.log('Data received from IPFS', JSON.parse(retrievedData.toString()))
-        var EcDRwithSig = JSON.parse(retrievedData.toString()) // Convert to string and parse as JSON object.
-        if (Object.keys(EcDRwithSig).length > 1 && 'timeStamp' in EcDRwithSig) {
-          // Get header.
+      // Checking countries status.
+      var WHOSC = new web3.eth.Contract(ABI, contractAddress, { defaultGas: suppliedGas })// End of ABi Code from Remix.
+      console.log('Contract instance created.')
+      WHOSC.methods.verificationTime(this.countryAddr).call({ from: this.currentAddress }).then(ipfsHashOfCountrysTCdoc => {
+        console.log('Country check response: ', ipfsHashOfCountrysTCdoc)
+        if (ipfsHashOfCountrysTCdoc) {
+          // Country check passed
           this.VerifyResult[keyToUse].status = 'success'
-          // Check timestamp.
-          const timeStamp = EcDRwithSig.timeStamp
-          // const testLatetimeStamp = 1619218659
-          // const convertedTimeStamp = this.convertUnixTimestamp(timeStamp)
-          const daysElapsed = this.verifyTimestampValidity(timeStamp)
-          if (daysElapsed <= 72) {
-            // Timestamp is within last 72 hours.
-            // Increment step.
-            currentStep += 1
-            keyToUse = Object.keys(this.VerifyResult)[currentStep]
-            this.VerifyResult[keyToUse].status = 'success'
-            // Construct merkle root.
-            this.merkleObject.first.push(this.userAssertions.green[0], this.userAssertions.green[1], timeStamp, hashedID) // All four needed acquired.
-            this.merkleObject.second.push(this.userAssertions.yellow[0], this.userAssertions.yellow[1], timeStamp, hashedID) // All four needed acquired.
-            // Generate Merkle tree.
-            const merkleToutputOne = this.getMerkleTree(this.merkleObject.first)
-            const merkleToutputTwo = this.getMerkleTree(this.merkleObject.second)
-            if (merkleToutputOne.aProof === true && merkleToutputTwo.aProof === true) {
-              this.merkleRoot.push(merkleToutputOne.merkleRoot, merkleToutputTwo.merkleRoot)
-              // Increment step.
-              currentStep += 1
-              keyToUse = Object.keys(this.VerifyResult)[currentStep]
-              this.VerifyResult[keyToUse].status = 'success'
-              // Data body in IPFS pulled object.
-              // console.log('Encrypted data: ', EcDRwithSig)
-              // Hash IPFS hash to be verified on chain.
-              getHash(this.enteredIPFShash).then(hashOfIPFShash => {
-                currentStep += 1
+          console.log('Country state check done.')
+          // Use the IPFShash to get data from IPFS
+          currentStep += 1
+          keyToUse = Object.keys(this.VerifyResult)[currentStep]
+          // Acquire encrypted data on IPFS.
+          ipfs.cat(this.enteredIPFShash).then(retrievedData => {
+            console.log('Data received from IPFS', JSON.parse(retrievedData.toString()))
+            var EcDRwithSig = JSON.parse(retrievedData.toString()) // Convert to string and parse as JSON object.
+            if (Object.keys(EcDRwithSig).length > 1 && 'timeStamp' in EcDRwithSig) {
+              // Get header.
+              // this.VerifyResult[keyToUse].status = 'success'
+              // Check timestamp.
+              const timeStamp = EcDRwithSig.timeStamp
+              // const testLatetimeStamp = 1619218659
+              // const convertedTimeStamp = this.convertUnixTimestamp(timeStamp)
+              const daysElapsed = this.verifyTimestampValidity(timeStamp)
+              if (daysElapsed <= 72) {
+                // Timestamp is within last 72 hours.
+                // Increment step.
+                // currentStep += 1
                 keyToUse = Object.keys(this.VerifyResult)[currentStep]
-                // Change status.
                 this.VerifyResult[keyToUse].status = 'success'
-                const hIPFShash = hashOfIPFShash
-                // Optional signing.
-                this.$confirm('Would you like to sign?', 'Optional Information', {
-                  confirmButtonText: 'Yes',
-                  cancelButtonText: 'No',
-                  type: 'info'
-                }).then(() => {
-                  this.$message({
-                    type: 'success',
-                    message: 'Getting Person signature'
-                  })
-                  // Allow user to sign IPFS hash if need.
-                  signatureGenerator.signatureGen(ipfsHash, this.currentAddress, (sig) => {
-                    this.fullSignature = sig
+                console.log('Timestamp check done.')
+                // Construct merkle root.
+                this.merkleObject.first.push(this.userAssertions.green[0], this.userAssertions.green[1], timeStamp, hashedID, this.countryAddr) // All four needed acquired.
+                this.merkleObject.second.push(this.userAssertions.yellow[0], this.userAssertions.yellow[1], timeStamp, hashedID, this.countryAddr) // All four needed acquired.
+                // Generate Merkle tree.
+                const merkleToutputOne = this.getMerkleTree(this.merkleObject.first)
+                const merkleToutputTwo = this.getMerkleTree(this.merkleObject.second)
+                if (merkleToutputOne.aProof === true && merkleToutputTwo.aProof === true) {
+                  this.merkleRoot.push(merkleToutputOne.merkleRoot, merkleToutputTwo.merkleRoot)
+                  // Increment step.
+                  currentStep += 1
+                  keyToUse = Object.keys(this.VerifyResult)[currentStep]
+                  this.VerifyResult[keyToUse].status = 'success'
+                  console.log('Proof creation done')
+                  // Data body in IPFS pulled object.
+                  // console.log('Encrypted data: ', EcDRwithSig)
+                  currentStep += 1
+                  keyToUse = Object.keys(this.VerifyResult)[currentStep]
+                  // Get country's TC file.
+                  ipfs.cat(ipfsHashOfCountrysTCdoc).then(retrievedData => {
+                    console.log('JSON File of TC', JSON.parse(retrievedData.toString()))
+                    this.VerifyResult[keyToUse].status = 'success'
+                    // Increment step.
                     currentStep += 1
                     keyToUse = Object.keys(this.VerifyResult)[currentStep]
-                    if (this.fullSignature.length > 0) {
-                      this.sigOnIPFShash = (sig.substring(0, 25) + '...' + sig.substr(sig.length - 25)).replace(/"/g, '') // Remove the double quotes.
-                      console.log('Person sig.: ', this.fullSignature)
-                      // Change status.
-                      this.VerifyResult[keyToUse].status = 'success'
-                      // Continue verification on-chain.
-                      this.continueVerificationOnchain(currentStep, hIPFShash, this.merkleRoot, hashedID)
-                    }
+                    // Check Proof
+                    // Verify signature authenticity.
                   }).catch(err => {
-                    console.log('Signature error: ', err)
-                    this.$message.error('Oops, Error generating signature.')
+                    console.log('IPFS error in getting TC file: ', err)
+                    this.$message.error('Oops, Error pulling TC data from IPFS.')
                     this.verifyBtnLoadState = false
                   })
-                }).catch(() => {
-                  this.$message({
-                    type: 'info',
-                    message: 'Signature request canceled'
-                  })
+                  // Check proof generated.
+
                   // Change status.
                   this.VerifyResult[keyToUse].status = 'success'
-                  currentStep += 1
-                  // Continue verification on-chain.
-                  this.continueVerificationOnchain(currentStep, hIPFShash, this.merkleRoot, hashedID)
-                })
-              })
-            } else {
-              this.$alert('Invalid proof generation of covid records. ', 'Invalid Proof', {
-                confirmButtonText: 'OK',
-                callback: action => {
-                  this.$message({
-                    type: 'warning ',
-                    message: 'User informed'
+                } else {
+                  this.$alert('Invalid proof generation of covid records. ', 'Invalid Proof', {
+                    confirmButtonText: 'OK',
+                    callback: action => {
+                      this.$message({
+                        type: 'warning ',
+                        message: 'User informed'
+                      })
+                    }
                   })
                 }
-              })
-            }
-          } else {
-            currentStep += 1
-            keyToUse = Object.keys(this.VerifyResult)[currentStep]
-            this.VerifyResult[keyToUse].status = 'error'
-            this.$alert('Time above 72 hrs threshold. ', 'Timestamp alert', {
-              confirmButtonText: 'OK',
-              callback: action => {
-                this.$message({
-                  type: 'warning ',
-                  message: 'User informed'
+              } else {
+                currentStep += 1
+                keyToUse = Object.keys(this.VerifyResult)[currentStep]
+                this.VerifyResult[keyToUse].status = 'error'
+                this.$alert('Time above 72 hrs threshold. ', 'Timestamp alert', {
+                  confirmButtonText: 'OK',
+                  callback: action => {
+                    this.$message({
+                      type: 'warning ',
+                      message: 'User informed'
+                    })
+                  }
                 })
               }
-            })
-          }
+            } else {
+              this.VerifyResult[keyToUse].status = 'error'
+              this.verifyBtnLoadState = false
+              console.log('Invalid encrypted data from IPFS for Blockcovid.')
+              this.$message.error('Invalid encrypted data from IPFS for Blockcovid.')
+            }
+          }).catch(err => {
+            console.log('IPFS error: ', err)
+            this.$message.error('Oops, Error pulling data from IPFS.')
+            this.verifyBtnLoadState = false
+          })
         } else {
-          this.VerifyResult[keyToUse].status = 'error'
-          this.verifyBtnLoadState = false
-          console.log('Invalid encrypted data from IPFS for Blockcovid.')
-          this.$message.error('Invalid encrypted data from IPFS for Blockcovid.')
+          return 0
         }
       }).catch(err => {
-        console.log('IPFS error: ', err)
-        this.$message.error('Oops, Error pulling data from IPFS.')
-        this.verifyBtnLoadState = false
+        console.log('Country is not activated', err)
+        this.$message.error('Sorry! Country is not activated.')
       })
     },
     continueVerificationOnchain (currentStep, hIPFShash, merkeRoot, hashedID) {
       // Verify on-chain
       console.log('Verifying on-chain.')
-      var countrySC = new web3.eth.Contract(ABIcountrySC, contractAddressCountrySC, { defaultGas: suppliedGasCountrySC })// End of ABi Code from Remix.
+      var WHOSC = new web3.eth.Contract(ABI, contractAddress, { defaultGas: suppliedGas })// End of ABi Code from Remix.
       console.log('Contract instance created.')
       currentStep += 1
       var keyToUse = Object.keys(this.VerifyResult)[currentStep]
       // Smart contract and other logic continues.
       // This is call operation. Any account can be used. It cost zero Eth.
       // Run loop on pre-defined assertions.
-      countrySC.methods.verifyPersonStatus(hIPFShash, hashedID, merkeRoot[0], this.fullSignature).call({ from: this.currentAddress }).then(resOne => {
-        // console.log('First response from Contract: ', resOne)
-        this.scResponse.push(resOne)
-        countrySC.methods.verifyPersonStatus(hIPFShash, hashedID, merkeRoot[1], this.fullSignature).call({ from: this.currentAddress }).then(resTwo => {
-          // console.log('Second response from Contract: ', resTwo)
-          this.scResponse.push(resTwo)
-          if (this.scResponse[0] === true || this.scResponse[1] === true) {
-            // Person passed. Display status.
-            this.VerifyResult[keyToUse].status = 'success'
-            this.$notify({
-              title: 'Successful proof',
-              message: 'You passed blockchain proof',
-              type: 'success'
-            })
-            this.verifyBtnLoadState = false
-            console.timeEnd('time')
-          } else {
-            // Person failed proof verification.
-            console.log('Failed proof')
-            // Change status.
-            this.VerifyResult[keyToUse].status = 'error'
-            this.$notify.error({
-              title: 'Failed proof',
-              message: 'Sorry! You failed blockchain verification.'
-            })
-            this.getUserChoice()
-          }
-        }).catch(err => {
-          console.log('Error occurred during blockchain verification', err)
-          this.$message.error('Sorry! Blockchain error')
-        })
+      WHOSC.methods.verificationTime(this.countryAddr).call({ from: this.currentAddress }).then(res => {
+        // console.log('Response from Contract: ', res)
+        if (res === true) {
+          // Patient passed. Display status.
+          this.VerifyResult[keyToUse].status = 'success'
+          this.$notify({
+            title: 'Successful proof',
+            message: 'You passed blockchain proof',
+            type: 'success'
+          })
+          this.verifyBtnLoadState = false
+          console.timeEnd('time')
+        } else {
+          // Person failed proof verification.
+          console.log('Failed proof')
+          // Change status.
+          this.VerifyResult[keyToUse].status = 'error'
+          this.$notify.error({
+            title: 'Failed proof',
+            message: 'Sorry! You failed blockchain verification.'
+          })
+          this.getUserChoice()
+        }
       }).catch(err => {
         console.log('Error occurred during blockchain verification', err)
         this.$message.error('Sorry! Blockchain error')
