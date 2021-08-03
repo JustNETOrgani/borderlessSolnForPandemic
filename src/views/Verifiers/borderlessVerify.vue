@@ -56,9 +56,9 @@
             </el-row>
         </div>
         <el-dialog
-            title="Covid-19 test/vaccination status verification"
+            title="Borderless COVID-19 Test/Vaccination Status Verification"
             :visible.sync="dialogVisible" width="40%">
-            <span id="IPFShashNotice">Verifying via: {{enteredIPFShash}}</span>
+            <span id="IPFShashNotice">Verifying via: {{blindedIPFShash}}</span>
             <br />
             <span id="BlockchainInUse">Blockchain in use: Ethereum</span>
             <el-steps v-loading="stepLoading" direction="vertical" :active="step">
@@ -99,7 +99,7 @@ export default {
         addOfPatientCountry: ''
       },
       countryAddr: '',
-      enteredIPFShash: '',
+      blindedIPFShash: '',
       hED: '',
       sigOnIPFShash: '',
       fullSignature: '',
@@ -273,14 +273,14 @@ export default {
     performVerification (ipfsHash, hashedID) {
       console.log('Verification initialized...')
       console.time('time')
-      this.enteredIPFShash = ipfsHash
+      this.blindedIPFShash = ipfsHash.substr(0, 3) + '...xxx...xxx...' + ipfsHash.substr(43, 46)
       // Create array object for steps.
       this.VerifyResult = {
         1: { step: '1', name: 'Country\'s status', status: 'wait' },
         2: { step: '2', name: 'Timestamp check', status: 'wait' },
         3: { step: '3', name: 'Creating Proof', status: 'wait' },
-        4: { step: '4', name: 'Accessing Country\'s TC File', status: 'wait' },
-        5: { step: '5', name: 'Checking Proof', status: 'wait' },
+        4: { step: '4', name: 'Checking Proof', status: 'wait' },
+        5: { step: '5', name: 'Accessing Country\'s TC File', status: 'wait' },
         6: { step: '6', name: 'Verifying Signature', status: 'wait' }
       }
       this.dialogVisible = true
@@ -290,17 +290,19 @@ export default {
       // Checking countries status.
       var WHOSC = new web3.eth.Contract(ABI, contractAddress, { defaultGas: suppliedGas })// End of ABi Code from Remix.
       console.log('Contract instance created.')
+      var beginCcheck = 0
       WHOSC.methods.verificationTime(this.countryAddr).call({ from: this.currentAddress }).then(ipfsHashOfCountrysTCdoc => {
         console.log('Country check response: ', ipfsHashOfCountrysTCdoc)
         if (ipfsHashOfCountrysTCdoc) {
           // Country check passed
+          beginCcheck = 1
           this.VerifyResult[keyToUse].status = 'success'
           console.log('Country state check done.')
           // Use the IPFShash to get data from IPFS
           currentStep += 1
           keyToUse = Object.keys(this.VerifyResult)[currentStep]
           // Acquire encrypted data on IPFS.
-          ipfs.cat(this.enteredIPFShash).then(retrievedData => {
+          ipfs.cat(ipfsHash).then(retrievedData => {
             console.log('Data received from IPFS', JSON.parse(retrievedData.toString()))
             var EcDRwithSig = JSON.parse(retrievedData.toString()) // Convert to string and parse as JSON object.
             if (Object.keys(EcDRwithSig).length > 1 && 'timeStamp' in EcDRwithSig) {
@@ -440,6 +442,10 @@ export default {
         console.log('Country is not activated', err)
         this.$message.error('Sorry! Country is not activated.')
       })
+      if (beginCcheck === 0) {
+        // Country check failed. Whole process aborted.
+        this.VerifyResult[keyToUse].status = 'error'
+      }
     },
     ipfsInputValidation (input) {
       const count = input.toString().length
