@@ -43,19 +43,11 @@
                     </div>
                 </el-col>
             </el-row>
-            <el-row>
-              <el-col :span="5" :offset="1">
-                <p id="computedLabel">Person signature:</p>
-              </el-col>
-              <el-col :span="5" :offset="0">
-                <p id="formattedString">{{sigOnIPFShash}}</p>
-              </el-col>
-            </el-row>
         </div>
         <el-dialog
             title="Covid-19 test/vaccination status verification"
             :visible.sync="dialogVisible" width="40%">
-            <span id="IPFShashNotice">Verifying via: {{enteredIPFShash}}</span>
+            <span id="IPFShashNotice">Verifying via: {{blindedIPFShash}}</span>
             <br />
             <span id="BlockchainInUse">Blockchain in use: Ethereum</span>
             <el-steps v-loading="stepLoading" direction="vertical" :active="step">
@@ -79,7 +71,6 @@
 
 <script>
 import ethEnabled from '@/assets/js/web3nMetaMask'
-import * as signatureGenerator from '@/assets/js/sigHelperFns'
 import getHash from '@/assets/js/hashFunc'
 import getMerkleRootFromMkTree from '@/assets/js/getMerkleRootOfData'
 import web3 from '@/assets/js/web3Only'
@@ -94,10 +85,9 @@ export default {
         ifpsHash: '',
         hashedID: ''
       },
-      enteredIPFShash: '',
+      blindedIPFShash: '',
       hEcDR: '',
       sigOnIPFShash: '',
-      fullSignature: '',
       currentAddress: '',
       addOfInCountry: '',
       VerifyResult: [],
@@ -276,22 +266,21 @@ export default {
     performVerification (ipfsHash, hashedID) {
       console.log('Verification initialized...')
       console.time('time')
-      this.enteredIPFShash = ipfsHash
+      this.blindedIPFShash = ipfsHash.substr(0, 3) + '...xxx...xxx...' + ipfsHash.substr(43, 46)
       // Create array object for steps.
       this.VerifyResult = {
         1: { step: '1', name: 'Getting data from IPFS', status: 'wait' },
         2: { step: '2', name: 'Timestamp check', status: 'wait' },
         3: { step: '3', name: 'Creating Proof', status: 'wait' },
-        4: { step: '4', name: 'Hashing data', status: 'wait' },
-        5: { step: '5', name: 'Optional signature request', status: 'wait' },
-        6: { step: '6', name: 'Verifying in Smart Contract', status: 'wait' }
+        4: { step: '4', name: 'Data Integrity Check', status: 'wait' },
+        5: { step: '5', name: 'Verifying in Smart Contract', status: 'wait' }
       }
       this.dialogVisible = true
       // Steps ---> TODO
       var currentStep = 0
       var keyToUse = Object.keys(this.VerifyResult)[currentStep]
       // Acquire encrypted data on IPFS.
-      ipfs.cat(this.enteredIPFShash).then(retrievedData => {
+      ipfs.cat(ipfsHash).then(retrievedData => {
         console.log('Data received from IPFS', JSON.parse(retrievedData.toString()))
         var EcDRwithSig = JSON.parse(retrievedData.toString()) // Convert to string and parse as JSON object.
         if (Object.keys(EcDRwithSig).length > 1 && 'timeStamp' in EcDRwithSig) {
@@ -321,51 +310,14 @@ export default {
               // Data body in IPFS pulled object.
               // console.log('Encrypted data: ', EcDRwithSig)
               // Hash IPFS hash to be verified on chain.
-              getHash(this.enteredIPFShash).then(hashOfIPFShash => {
+              getHash(ipfsHash).then(hashOfIPFShash => {
                 currentStep += 1
                 keyToUse = Object.keys(this.VerifyResult)[currentStep]
                 // Change status.
                 this.VerifyResult[keyToUse].status = 'success'
                 const hIPFShash = hashOfIPFShash
-                // Optional signing.
-                this.$confirm('Would you like to sign?', 'Optional Information', {
-                  confirmButtonText: 'Yes',
-                  cancelButtonText: 'No',
-                  type: 'info'
-                }).then(() => {
-                  this.$message({
-                    type: 'success',
-                    message: 'Getting Person signature'
-                  })
-                  // Allow user to sign IPFS hash if need.
-                  signatureGenerator.signatureGen(ipfsHash, this.currentAddress, (sig) => {
-                    this.fullSignature = sig
-                    currentStep += 1
-                    keyToUse = Object.keys(this.VerifyResult)[currentStep]
-                    if (this.fullSignature.length > 0) {
-                      this.sigOnIPFShash = (sig.substring(0, 25) + '...' + sig.substr(sig.length - 25)).replace(/"/g, '') // Remove the double quotes.
-                      console.log('Person sig.: ', this.fullSignature)
-                      // Change status.
-                      this.VerifyResult[keyToUse].status = 'success'
-                      // Continue verification on-chain.
-                      this.continueVerificationOnchain(currentStep, hIPFShash, this.merkleRoot, hashedID)
-                    }
-                  }).catch(err => {
-                    console.log('Signature error: ', err)
-                    this.$message.error('Oops, Error generating signature.')
-                    this.verifyBtnLoadState = false
-                  })
-                }).catch(() => {
-                  this.$message({
-                    type: 'info',
-                    message: 'Signature request canceled'
-                  })
-                  // Change status.
-                  this.VerifyResult[keyToUse].status = 'success'
-                  currentStep += 1
-                  // Continue verification on-chain.
-                  this.continueVerificationOnchain(currentStep, hIPFShash, this.merkleRoot, hashedID)
-                })
+                // Continue verification on-chain.
+                this.continueVerificationOnchain(currentStep, hIPFShash, this.merkleRoot, hashedID)
               })
             } else {
               this.$alert('Invalid proof generation of covid records. ', 'Invalid Proof', {
@@ -414,10 +366,10 @@ export default {
       // Smart contract and other logic continues.
       // This is call operation. Any account can be used. It cost zero Eth.
       // Run loop on pre-defined assertions.
-      countrySC.methods.verifyUserStatus(hIPFShash, hashedID, merkeRoot[0], this.fullSignature).call({ from: this.currentAddress }).then(resOne => {
+      countrySC.methods.verifyUserStatus(hIPFShash, hashedID, merkeRoot[0]).call({ from: this.currentAddress }).then(resOne => {
         // console.log('First response from Contract: ', resOne)
         this.scResponse.push(resOne)
-        countrySC.methods.verifyUserStatus(hIPFShash, hashedID, merkeRoot[1], this.fullSignature).call({ from: this.currentAddress }).then(resTwo => {
+        countrySC.methods.verifyUserStatus(hIPFShash, hashedID, merkeRoot[1]).call({ from: this.currentAddress }).then(resTwo => {
           // console.log('Second response from Contract: ', resTwo)
           this.scResponse.push(resTwo)
           if (this.scResponse[0] === true || this.scResponse[1] === true) {
