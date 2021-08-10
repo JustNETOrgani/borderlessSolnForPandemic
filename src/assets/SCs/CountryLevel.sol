@@ -5,11 +5,9 @@ pragma solidity ^0.8.4;
 contract countrySC{
     // Structs to be used in the contract.
     struct patientStruct{
-        address patientAddress; // Blockchain address of person.
         bytes32 PHID; // Hashed Identifier of user.
         bytes32 hIPFShash; // Hash of the IPFS hash. // Delinks on-chain connection to IPFS.
         bytes32 proofOfCovidStatus; // Contains Merkle root hash.
-        string signature; // Signature generated from the IPFShash as message.
     }
     struct TCs{
         string TC_name; // Name of Testing Center
@@ -101,11 +99,11 @@ contract countrySC{
     }
     
     // Function to register patient.
-    function patientRegistration(address _patientAddress, bytes32 _PHID, bytes32 _hIPFShash, bytes32 _proofOfCovidStatus, uint8 _vState, string memory _signature) TCsOnly public returns (bool result){
+    function patientRegistration(bytes32 _PHID, bytes32 _hIPFShash, bytes32 _proofOfCovidStatus, uint8 _vState) TCsOnly public returns (bool result){
         // AA checks.
         require (TC[msg.sender].tcState==stateOfTC.Activated, 'Access denied');// Check msg.sender is part of Activated TCs.
         require (patient[_PHID].PHID == "", "PHID already exist");
-        patient[_PHID] = patientStruct(_patientAddress, _PHID, _hIPFShash, _proofOfCovidStatus, _signature);
+        patient[_PHID] = patientStruct(_PHID, _hIPFShash, _proofOfCovidStatus);
         totalTested += 1;
         if (_vState == 1) {
             totalVaccinated += 1;
@@ -114,15 +112,13 @@ contract countrySC{
         return true;
     }
     //  Fucntion to update a person's Covid-19 test status by an approvedHealthFacility.
-    function patientRecordUpdate(address _patientAddress, bytes32 _PHID, bytes32 _hIPFShash, bytes32 _proofOfCovidStatus, uint8 _vState, string memory _signature_new) TCsOnly public returns (bool result){
+    function patientRecordUpdate(bytes32 _PHID, bytes32 _hIPFShash, bytes32 _proofOfCovidStatus, uint8 _vState) TCsOnly public returns (bool result){
         // AA checks.
         require (TC[msg.sender].tcState==stateOfTC.Activated, 'Access denied');// Check msg.sender is part of Activated TCs.
         require(patient[_PHID].PHID == _PHID, 'Invalid Hashed Identifier');
-        require (patient[_PHID].patientAddress == _patientAddress, "Address mismatch");
         // Update person records
         patient[_PHID].hIPFShash = _hIPFShash;
         patient[_PHID].proofOfCovidStatus = _proofOfCovidStatus;
-        patient[_PHID].signature = _signature_new;
         if (_vState == 1) {
             totalVaccinated += 1;
         }
@@ -131,40 +127,17 @@ contract countrySC{
         return true;
     }
     // Function for status verification.
-    function verifyUserStatus(bytes32 hIPFShash, bytes32 _PHID, bytes32 _proofOfCovidStatus, string memory signature) public view returns (bool) {
+    function verifyUserStatus(bytes32 hIPFShash, bytes32 _PHID, bytes32 _proofOfCovidStatus) public view returns (bool) {
         patientStruct memory ps = patient[_PHID];
         if (ps.hIPFShash==hIPFShash && ps.proofOfCovidStatus==_proofOfCovidStatus) {
-            bytes memory sigBytes = bytes(signature);
-            if (sigBytes.length == 0) {
-                // Person is verifying without Signature
-                return true;
-            }
-            else {
-                    // Person is verifying via Signature
-                    // Check signature matches on-chain signature to confirm ownership of the address.
-                    if (keccak256(abi.encodePacked(patient[_PHID].signature)) == keccak256(abi.encodePacked(signature))){
-                        return true;
-                    }
-                    else {
-                        return false;
-                    }
-            }
+            return true;
         }
         else {
             return false;
         }
     }
-    
-    //  Fucntion to update a Patient's blockchain address per Patient.
-    function updateBlockchainAddr(bytes32 _PHID, address personNewAddr) public returns (bool result){
-        require (patient[_PHID].patientAddress == msg.sender, "Unauthorized Patient"); // Current address required before change is initiated.
-        // Update person address.
-        patient[_PHID].patientAddress = personNewAddr;
-        return true;
-    }
-    
     // Function to get public info.
-    function getPublicStatistics() public view returns (uint256, uint256, uint256) {
+    function getPublicStatistics() public view returns (uint256 Total_tested, uint256 UpdatedRecords, uint256 TotalVaccinated) {
         return (totalTested, totalRecordUpdate, totalVaccinated);
     }
 }

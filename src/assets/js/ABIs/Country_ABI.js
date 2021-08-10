@@ -137,17 +137,17 @@ var ABIcountrySC = [
     outputs: [
       {
         internalType: 'uint256',
-        name: '',
+        name: 'Total_tested',
         type: 'uint256'
       },
       {
         internalType: 'uint256',
-        name: '',
+        name: 'UpdatedRecords',
         type: 'uint256'
       },
       {
         internalType: 'uint256',
-        name: '',
+        name: 'TotalVaccinated',
         type: 'uint256'
       }
     ],
@@ -180,11 +180,6 @@ var ABIcountrySC = [
   {
     inputs: [
       {
-        internalType: 'address',
-        name: '_patientAddress',
-        type: 'address'
-      },
-      {
         internalType: 'bytes32',
         name: '_PHID',
         type: 'bytes32'
@@ -203,11 +198,6 @@ var ABIcountrySC = [
         internalType: 'uint8',
         name: '_vState',
         type: 'uint8'
-      },
-      {
-        internalType: 'string',
-        name: '_signature_new',
-        type: 'string'
       }
     ],
     name: 'patientRecordUpdate',
@@ -224,11 +214,6 @@ var ABIcountrySC = [
   {
     inputs: [
       {
-        internalType: 'address',
-        name: '_patientAddress',
-        type: 'address'
-      },
-      {
         internalType: 'bytes32',
         name: '_PHID',
         type: 'bytes32'
@@ -247,11 +232,6 @@ var ABIcountrySC = [
         internalType: 'uint8',
         name: '_vState',
         type: 'uint8'
-      },
-      {
-        internalType: 'string',
-        name: '_signature',
-        type: 'string'
       }
     ],
     name: 'patientRegistration',
@@ -364,30 +344,6 @@ var ABIcountrySC = [
     inputs: [
       {
         internalType: 'bytes32',
-        name: '_PHID',
-        type: 'bytes32'
-      },
-      {
-        internalType: 'address',
-        name: 'personNewAddr',
-        type: 'address'
-      }
-    ],
-    name: 'updateBlockchainAddr',
-    outputs: [
-      {
-        internalType: 'bool',
-        name: 'result',
-        type: 'bool'
-      }
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function'
-  },
-  {
-    inputs: [
-      {
-        internalType: 'bytes32',
         name: 'hIPFShash',
         type: 'bytes32'
       },
@@ -400,11 +356,6 @@ var ABIcountrySC = [
         internalType: 'bytes32',
         name: '_proofOfCovidStatus',
         type: 'bytes32'
-      },
-      {
-        internalType: 'string',
-        name: 'signature',
-        type: 'string'
       }
     ],
     name: 'verifyUserStatus',
@@ -420,7 +371,7 @@ var ABIcountrySC = [
   }
 ]
 
-var contractAddressCountrySC = '0x36c6917b4c6C61DC2B9F7a05eAc00effD32D4A2a'
+var contractAddressCountrySC = '0x886B56E39a09f5b38163bBb41419c33a16107D78'
 
 var suppliedGasCountrySC = 3000000
 

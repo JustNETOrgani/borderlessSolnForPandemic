@@ -128,8 +128,13 @@ var ABI = [
         type: 'address'
       },
       {
+        internalType: 'address',
+        name: 'addrOfSC',
+        type: 'address'
+      },
+      {
         internalType: 'string',
-        name: 'IPFShash',
+        name: 'tcIPFShash',
         type: 'string'
       },
       {
@@ -211,8 +216,13 @@ var ABI = [
         type: 'address'
       },
       {
+        internalType: 'address',
+        name: '_addrOfSC',
+        type: 'address'
+      },
+      {
         internalType: 'string',
-        name: '_IPFShash',
+        name: '_tcIPFShash',
         type: 'string'
       }
     ],
@@ -286,7 +296,7 @@ var ABI = [
     inputs: [
       {
         internalType: 'string',
-        name: '_newIPFShash',
+        name: '_newTcIPFShash',
         type: 'string'
       }
     ],
@@ -322,7 +332,7 @@ var ABI = [
   }
 ]
 
-var contractAddress = '0x6f86723F912ee1cCa85195BCB621317059d2EaD1'
+var contractAddress = '0x0D351CD36e4E28340B1aCc2f8cA07968A9835D16'
 
 var suppliedGas = 3000000
 
