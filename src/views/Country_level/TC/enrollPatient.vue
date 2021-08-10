@@ -4,7 +4,7 @@
           <el-link icon="el-icon-arrow-left" style="font-size:17px;float:left;" @click="backToPrvPg">Previous Page</el-link>
         </div>
         <div class="wrapper" v-loading="loadingPOnboardingPage">
-            <h3>Enroll Patient onto Borderless</h3>
+            <h3>Enroll Patient on Borderless</h3>
             <div v-loading="pageLoadingState">
                 <el-row>
                 <el-col :span="6">
@@ -21,7 +21,7 @@
             <el-row>
                 <el-steps :active="active" align-center finish-status="success">
                 <el-step title="Step 1" description="Enter and Process data"></el-step>
-                <el-step title="Step 2" description="Get Patient's signature"></el-step>
+                <el-step title="Step 2" description="Get TC's signature"></el-step>
                 <el-step title="Step 3" description="Get IPFS hash via QR code"></el-step>
                 <el-step title="Step 4" description="Anchor in blockchain"></el-step>
                 </el-steps>
@@ -71,13 +71,21 @@
                 </el-col>
                 <el-col :span="13" :offset="2">
                     <fieldset>
-                        <legend>On-chain data</legend>
+                        <legend>Processed Data</legend>
                             <el-row>
                                 <el-col :span="5" :offset="0">
                                     <p class="computedLabels">Hash of Patient's ID:</p>
                                 </el-col>
                                 <el-col :span="5" :offset="0">
                                     <p id="formattedString_hEcDR">{{HashedID}}</p>
+                                </el-col>
+                            </el-row>
+                            <el-row>
+                                <el-col :span="6" :offset="0">
+                                    <p class="computedLabels">Proof-of-COVID status:</p>
+                                </el-col>
+                                <el-col :span="5" :offset="0">
+                                    <p class="formattedString">{{proofOfCOVIDStatus}}</p>
                                 </el-col>
                             </el-row>
                             <el-row>
@@ -90,24 +98,11 @@
                             </el-row>
                             <el-row>
                                 <el-col :span="5" :offset="0">
-                                    <p class="computedLabels">Patient's signature:</p>
-                                </el-col>
-                                <el-col :span="5" :offset="0">
-                                    <p class="formattedString">{{signature_substring}}</p>
-                                </el-col>
-                            </el-row>
-                            <el-row>
-                                <el-col :span="5" :offset="0">
                                     <p class="computedLabels">TC's Signature:</p>
                                 </el-col>
                                 <el-col :span="5" :offset="0">
                                     <p class="formattedString">{{signatureTC_substring}}</p>
                                 </el-col>
-                            </el-row>
-                            <el-row>
-                              <el-col :span="4" :offset="8">
-                                <el-button type="info" round :loading="personSigGenLoadBtn" @click="getPatientSig()">Get Person signature</el-button>
-                              </el-col>
                             </el-row>
                     </fieldset>
                 </el-col>
@@ -116,17 +111,6 @@
                 <el-button type="primary" :loading="submitLoadBtn" @click="anchorOnchain()">Submit to blockchain</el-button>
             </el-row>
         </div>
-        <el-dialog
-          title="Switch account"
-          :visible.sync="accountSwitchDialogVisible"
-          width="30%"
-          :before-close="handleAccountSwitchDialogClose">
-          <span>Allow user to sign IPFS hash</span>
-          <span slot="footer" class="dialog-footer">
-            <el-button @click="accountSwitchDialogVisible = false">Cancel</el-button>
-            <el-button type="primary" @click="accountSwitchDialogVisible = false">Ok</el-button>
-          </span>
-        </el-dialog>
         <div id="overlay" v-loading="qrCodeLoading">
           <div id="qrCodeGenerated"></div>
           <el-button type="primary" @click="qrCodeDivDisappear()">Done</el-button>
@@ -176,6 +160,7 @@ export default {
       fullSignature: '',
       signatureTC_substring: '',
       signature_substring: '',
+      proofOfCOVIDStatus: '',
       address: '',
       currentEthAddress: '',
       personAccount: '',
@@ -192,7 +177,6 @@ export default {
       pageLoadingState: false,
       personOnboardLoadBtn: false,
       loadingPOnboardingPage: true,
-      personSigGenLoadBtn: false,
       submitLoadBtn: false,
       qrCodeLoading: false,
       // Account change status.
@@ -202,7 +186,6 @@ export default {
       qrCodeOfIPFShashDialog: false,
       // Button disable tracker.
       processDataBtnState: false,
-      getPersonSigBtnState: false,
       anchorOnBlockBtnState: false,
       rules: {
         userID: [
@@ -356,6 +339,8 @@ export default {
                     const merkleToutput = getMerkleRootFromMkTree(this.merkeTreeData)
                     if (merkleToutput.aProof === true) {
                       this.mkRoot = merkleToutput.merkleRoot
+                      this.proofOfCOVIDStatus = merkleToutput.merkleRoot.substr(0, 20) + '...' + merkleToutput.merkleRoot.substr(merkleToutput.merkleRoot.length - 20)
+                      this.active += 1 // Increment step to move to next stage.
                       // Prepare data H(Proof||hED) to be signed by TC.
                       const dataToSign = this.mkRoot.concat(this.hED)
                       // Hash to sign.
@@ -405,6 +390,8 @@ export default {
         this.sigOfTC = sig
         console.log('TC\'s sig.: ', this.sigOfTC)
         this.signatureTC_substring = (this.sigOfTC.substring(0, 25) + '...' + this.sigOfTC.substr(this.sigOfTC.length - 25)).replace(/"/g, '') // Remove the double quotes.
+        // TC signature acquired. Increment.
+        this.active += 1 // Increment step to move to next stage.
         // Push data to IPFS.
         this.pushToIPFShub()
       })
@@ -433,6 +420,17 @@ export default {
                 this.accountSwitchDialogVisible = true
                 // Change state of processData button.
                 this.processDataBtnState = true
+                this.$alert('Scan QR that follows to get the IPFS hash for proof', 'User information', {
+                  confirmButtonText: 'OK',
+                  callback: action => {
+                    this.$message({
+                      type: 'info',
+                      message: 'User consented'
+                    })
+                    // Display the QR code by callign the method.
+                    this.displayQRcode(this.IPFSHashOfhEcDR)
+                  }
+                })
               }
             })
           } else {
@@ -453,58 +451,6 @@ export default {
         })
       })
     },
-    getPatientSig () {
-      if (this.getPersonSigBtnState === false) {
-        if (this.hED !== '' && this.IPFSHashOfhEcDR !== '') {
-          if (this.personAccount !== '') {
-            this.personSigGenLoadBtn = true
-            this.signatureOfPatient()
-          } else {
-            this.$message({
-              message: 'Account switching not done. Switch account now.',
-              type: 'warning'
-            })
-          }
-        } else {
-          this.$message({
-            message: 'Sorry! Complete step 1 before proceeding.',
-            type: 'warning'
-          })
-        }
-      } else {
-        this.$message.error('Sorry! On-chain data already generated')
-      }
-    },
-    signatureOfPatient () {
-      console.log('Signing using address: ', this.personAccount, 'on data: ', this.IPFSHashOfhEcDR)
-      // eslint-disable-next-line no-return-assign
-      signatureGenerator.signatureGen(this.IPFSHashOfhEcDR, this.personAccount, (sig) => {
-        this.address = this.personAccount
-        this.fullSignature = sig
-        // Prepare signature substring due to length.
-        this.signature_substring = (sig.substring(0, 25) + '...' + sig.substr(sig.length - 25)).replace(/"/g, '') // Remove the double quotes.
-        console.log('Person signature acquired.')
-        this.personSigGenLoadBtn = false
-        console.log('Person sig.: ', this.fullSignature)
-        this.$alert('Scan QR that follows to get the IPFS hash for proof', 'User information', {
-          confirmButtonText: 'OK',
-          callback: action => {
-            this.$message({
-              type: 'info',
-              message: 'User consented'
-            })
-            // Display the QR code by callign the method.
-            this.displayQRcode(this.IPFSHashOfhEcDR)
-          }
-        })
-        this.active += 1 // Increment step to move to next stage.
-        // Change state of person signature button.
-        this.getPersonSigBtnState = true
-      }).catch(err => {
-        console.log('Error generating signature.', err)
-        this.$message.error('Oops, Error getting person\'s signature')
-      })
-    },
     displayQRcode (userIPFShash) {
       this.qrCodeLoading = true
       console.log('Preparing QR code for: ', userIPFShash)
@@ -518,7 +464,6 @@ export default {
       document.getElementById('overlay').style.display = 'block'
       qrCode.append(document.getElementById('qrCodeGenerated'))
       this.qrCodeLoading = false
-      this.active += 1 // Increment step to move to next stage.
     },
     qrCodeDivDisappear () {
       document.getElementById('overlay').style.display = 'none'
@@ -529,73 +474,58 @@ export default {
       return txReceipt
     },
     anchorOnchain () {
-      this.getAccount().then(accounts => {
-        var acc = accounts[0]
-        if (acc === this.currentEthAddress) {
-          // Account switched.
-          if (this.anchorOnBlockBtnState === false) {
-            // Check all needed smart contract-related data have been acquired.
-            if (this.HashedID !== '' && this.IPFSHashOfhEcDR !== '' && this.hIPFShash !== '' && this.personAccount !== '' && this.fullSignature !== '') {
-              var vState = 0
-              if (this.onboardPerson.vStatus === 'vaccinated') {
-                vState = 1
-              }
-              console.log('Sending to blockchain')
-              this.submitLoadBtn = true
-              var countrySC = new web3.eth.Contract(ABIcountrySC, contractAddressCountrySC, { defaultGas: suppliedGasCountrySC })
-              console.log('Contract instance created.')
-              // Smart contract and other logic continues.
-              try {
-                // Transaction parameters
-                const txParams = {
-                  from: this.currentEthAddress,
-                  to: contractAddressCountrySC,
-                  data: countrySC.methods.patientRegistration(this.pgAccounts[1], this.HashedID, this.hIPFShash, this.mkRoot, vState, this.fullSignature).encodeABI()
-                }
-                this.sendTnx(txParams).then(tnxReceipt => {
-                  console.log('Transaction receipt: ', tnxReceipt)
-                  this.$message({
-                    type: 'info',
-                    message: 'Transaction successful'
-                  })
-                  // Display success note.
-                  this.active += 1 // Increment step.
-                  this.$alert('Person successfully anchored on Blockchain.', 'Creation success', {
-                    confirmButtonText: 'OK',
-                    callback: action => {
-                      this.$message({
-                        type: 'info',
-                        message: 'Transaction successful'
-                      })
-                      this.anchorOnBlockBtnState = true
-                      // this.getUserChoiceForRedirect() // Allow user to decide.
-                    }
-                  })
-                  this.$message({
-                    message: 'Person successfully created on Blockchain.',
-                    type: 'success'
-                  })
-                  this.submitLoadBtn = false
-                })
-              } catch {
-                console.log('Sorry! Error occured.')
-                this.submitLoadBtn = false
-                this.$message.error('Non-transactional error. Please try again later.')
-              }
-              this.submitLoadBtn = false
-            } else {
-              this.$message.error('Sorry! On-chain data not generated.')
-            }
-          } else {
-            this.$message.error('Sorry! Data on page already processed.')
-          }
-        } else {
-          this.$message({
-            message: 'Account switching not done. Switch account now.',
-            type: 'warning'
-          })
+      if (this.processDataBtnState === true) {
+        // Check all needed smart contract-related data have been acquired.
+        var vState = 0
+        if (this.onboardPerson.vStatus === 'vaccinated') {
+          vState = 1
         }
-      })
+        console.log('Sending to blockchain')
+        this.submitLoadBtn = true
+        var countrySC = new web3.eth.Contract(ABIcountrySC, contractAddressCountrySC, { defaultGas: suppliedGasCountrySC })
+        console.log('Contract instance created.')
+        // Smart contract and other logic continues.
+        try {
+          // Transaction parameters
+          const txParams = {
+            from: this.currentEthAddress,
+            to: contractAddressCountrySC,
+            data: countrySC.methods.patientRegistration(this.HashedID, this.hIPFShash, this.mkRoot, vState).encodeABI()
+          }
+          this.sendTnx(txParams).then(tnxReceipt => {
+            console.log('Transaction receipt: ', tnxReceipt)
+            this.$message({
+              type: 'info',
+              message: 'Transaction successful'
+            })
+            // Display success note.
+            this.active += 1 // Increment step.
+            this.$alert('Person successfully anchored on Blockchain.', 'Creation success', {
+              confirmButtonText: 'OK',
+              callback: action => {
+                this.$message({
+                  type: 'info',
+                  message: 'Transaction successful'
+                })
+                this.anchorOnBlockBtnState = true
+                // this.getUserChoiceForRedirect() // Allow user to decide.
+              }
+            })
+            this.$message({
+              message: 'Person successfully created on Blockchain.',
+              type: 'success'
+            })
+            this.submitLoadBtn = false
+          })
+        } catch {
+          console.log('Sorry! Error occured.')
+          this.submitLoadBtn = false
+          this.$message.error('Non-transactional error. Please try again later.')
+        }
+        this.submitLoadBtn = false
+      } else {
+        this.$message.error('Sorry! Data on page not processed.')
+      }
     },
     getUserChoiceForRedirect () {
       this.$confirm('Do you want to onboard another person?', 'Information needed', {
