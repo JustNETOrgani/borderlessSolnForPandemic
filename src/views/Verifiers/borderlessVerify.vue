@@ -277,9 +277,9 @@ export default {
       // Create array object for steps.
       this.VerifyResult = {
         1: { step: '1', name: 'Country\'s status', status: 'wait' },
-        2: { step: '2', name: 'Timestamp check', status: 'wait' },
-        3: { step: '3', name: 'Creating Proof', status: 'wait' },
-        4: { step: '4', name: 'Checking Proof', status: 'wait' },
+        2: { step: '2', name: 'Creating Proof', status: 'wait' },
+        3: { step: '3', name: 'Checking Proof', status: 'wait' },
+        4: { step: '4', name: 'Timestamp Check', status: 'wait' },
         5: { step: '5', name: 'Accessing Country\'s TC File', status: 'wait' },
         6: { step: '6', name: 'Verifying Signature', status: 'wait' }
       }
@@ -308,113 +308,69 @@ export default {
             if (Object.keys(EcDRwithSig).length > 1 && 'timeStamp' in EcDRwithSig) {
               // Get header.
               // this.VerifyResult[keyToUse].status = 'success'
-              // Check timestamp.
+              // Get timestamp from data.
               const timeStamp = EcDRwithSig.timeStamp
-              // const testLatetimeStamp = 1619218659
-              // const convertedTimeStamp = this.convertUnixTimestamp(timeStamp)
-              const daysElapsed = this.verifyTimestampValidity(timeStamp)
-              if (daysElapsed <= 72) {
-                // Timestamp is within last 72 hours.
-                // Increment step.
-                // currentStep += 1
-                keyToUse = Object.keys(this.VerifyResult)[currentStep]
+              // Construct merkle root.
+              this.merkleObject.first.push(this.userAssertions.green[0], this.userAssertions.green[1], timeStamp, hashedID, this.countryAddr) // All four needed acquired.
+              this.merkleObject.second.push(this.userAssertions.yellow[0], this.userAssertions.yellow[1], timeStamp, hashedID, this.countryAddr) // All four needed acquired.
+              // Generate Merkle tree.
+              const merkleToutputOne = this.getMerkleTree(this.merkleObject.first)
+              const merkleToutputTwo = this.getMerkleTree(this.merkleObject.second)
+              if (merkleToutputOne.aProof === true && merkleToutputTwo.aProof === true) {
+                this.merkleRoot.push(merkleToutputOne.merkleRoot, merkleToutputTwo.merkleRoot)
                 this.VerifyResult[keyToUse].status = 'success'
-                console.log('Timestamp check done.')
-                // Construct merkle root.
-                this.merkleObject.first.push(this.userAssertions.green[0], this.userAssertions.green[1], timeStamp, hashedID, this.countryAddr) // All four needed acquired.
-                this.merkleObject.second.push(this.userAssertions.yellow[0], this.userAssertions.yellow[1], timeStamp, hashedID, this.countryAddr) // All four needed acquired.
-                // Generate Merkle tree.
-                const merkleToutputOne = this.getMerkleTree(this.merkleObject.first)
-                const merkleToutputTwo = this.getMerkleTree(this.merkleObject.second)
-                if (merkleToutputOne.aProof === true && merkleToutputTwo.aProof === true) {
-                  this.merkleRoot.push(merkleToutputOne.merkleRoot, merkleToutputTwo.merkleRoot)
-                  // Increment step.
-                  currentStep += 1
-                  keyToUse = Object.keys(this.VerifyResult)[currentStep]
+                console.log('Proof creation done')
+                // Data body in IPFS pulled object.
+                // console.log('Encrypted data: ', EcDRwithSig)
+                currentStep += 1
+                keyToUse = Object.keys(this.VerifyResult)[currentStep]
+                // Check Proof
+                // Check proof equality with IPFS data.
+                if (this.merkleRoot[0] === EcDRwithSig.ProofCovidStatus || this.merkleRoot[1] === EcDRwithSig.ProofCovidStatus) {
                   this.VerifyResult[keyToUse].status = 'success'
-                  console.log('Proof creation done')
-                  // Data body in IPFS pulled object.
-                  // console.log('Encrypted data: ', EcDRwithSig)
-                  currentStep += 1
-                  keyToUse = Object.keys(this.VerifyResult)[currentStep]
-                  // Check Proof
-                  // Check proof equality with IPFS data.
-                  if (this.merkleRoot[0] === EcDRwithSig.ProofCovidStatus || this.merkleRoot[1] === EcDRwithSig.ProofCovidStatus) {
-                    // Match found. ProofCovidStatus can be used.
-                    this.VerifyResult[keyToUse].status = 'success'
-                    console.log('Proof check passed')
-                    // Get country's TC file.
+                  console.log('Passed proof checks')
+                  if (this.merkleRoot[0] === EcDRwithSig.ProofCovidStatus) {
+                    // Patient vaccinated. Ignore timestamp.
+                    // Increment step for timestamp passed.
                     currentStep += 1
                     keyToUse = Object.keys(this.VerifyResult)[currentStep]
-                    // Get TC file from IPFS.
-                    ipfs.cat(ipfsHashOfCountrysTCdoc).then(tcDataFileFromIPFS => {
-                      console.log('JSON File of TC', JSON.parse(tcDataFileFromIPFS.toString()))
-                      var tcData = JSON.parse(tcDataFileFromIPFS.toString())
-                      this.VerifyResult[keyToUse].status = 'success'
-                      // Increment step.
+                    this.VerifyResult[keyToUse].status = 'success'
+                    console.log('Passed timestamp check...')
+                    // Call Continue with verification function.
+                    this.verificationContinued(keyToUse, currentStep, ipfsHashOfCountrysTCdoc, EcDRwithSig)
+                  } else {
+                    // Patient is not vaccinated. Check timestamp.
+                    const daysElapsed = this.verifyTimestampValidity(timeStamp)
+                    if (daysElapsed <= 72) {
+                      // Timestamp is within last 72 hours.
+                      // Increment step for timestamp passed.
                       currentStep += 1
                       keyToUse = Object.keys(this.VerifyResult)[currentStep]
-                      // Prepare data H(Proof||hED) to be signed by TC.
-                      getHash(EcDRwithSig.encryptedData).then(res => {
-                        this.hED = res
-                        const dataSignedbyTC = EcDRwithSig.ProofCovidStatus.concat(this.hED)
-                        // Hash to sign.
-                        getHash(dataSignedbyTC).then(hashedDataOneSigned => {
-                          // Verify signature authenticity by recovering signer's address from signature.
-                          const signature = EcDRwithSig.sigOfTC.replace(/"/g, '') // Remove the double quotes.
-                          const recoveredAddrOfTC = recoveredAddrFromSig(hashedDataOneSigned, signature)
-                          console.log('Address recovered: ', recoveredAddrOfTC)
-                          // Check if address exist in patient's country's TC file.
-                          if (Object.values(tcData).includes(web3.utils.toChecksumAddress(recoveredAddrOfTC))) {
-                            // TC signature verification passed.
-                            console.log('Signature verification passed.')
-                            this.VerifyResult[keyToUse].status = 'success'
-                            this.$notify({
-                              title: 'Successful proof',
-                              message: 'Successful verification',
-                              type: 'success'
-                            })
-                            this.verifyBtnLoadState = false
-                            this.getUserChoice()
-                          } else {
-                            this.VerifyResult[keyToUse].status = 'error'
-                            this.verifyBtnLoadState = false
-                            console.log('TC signature verification failed.')
-                            this.$message.error('TC signature verification failed.')
-                            this.VerifyResult[keyToUse].status = 'error'
-                            this.$notify.error({
-                              title: 'Failed proof',
-                              message: 'Sorry! You failed verification.'
-                            })
-                            this.getUserChoice()
-                          }
-                        })
-                      })
-                    }).catch(err => {
-                      console.log('IPFS error in getting TC file: ', err)
-                      this.$message.error('Oops, Error pulling TC data from IPFS.')
-                      this.verifyBtnLoadState = false
-                    })
-                  } else {
-                    this.VerifyResult[keyToUse].status = 'error'
-                    this.verifyBtnLoadState = false
-                    console.log('Proof check failed.')
-                    this.$message.error('Failed proof check.')
-                  }
-                } else {
-                  this.$alert('Invalid proof generation of covid records. ', 'Invalid Proof', {
-                    confirmButtonText: 'OK',
-                    callback: action => {
-                      this.$message({
-                        type: 'warning ',
-                        message: 'User informed'
+                      this.VerifyResult[keyToUse].status = 'success'
+                      console.log('Passed timestamp check')
+                      // Call Continue with verification function.
+                      this.verificationContinued(keyToUse, currentStep, ipfsHashOfCountrysTCdoc, EcDRwithSig)
+                    } else {
+                      this.VerifyResult[keyToUse].status = 'error'
+                      this.$alert('Time above 72 hrs threshold. ', 'Timestamp alert', {
+                        confirmButtonText: 'OK',
+                        callback: action => {
+                          this.$message({
+                            type: 'warning ',
+                            message: 'User informed'
+                          })
+                        }
                       })
                     }
-                  })
+                  }
+                } else {
+                  this.VerifyResult[keyToUse].status = 'error'
+                  this.verifyBtnLoadState = false
+                  console.log('Proof check failed.')
+                  this.$message.error('Failed proof check.')
                 }
               } else {
-                this.VerifyResult[keyToUse].status = 'error'
-                this.$alert('Time above 72 hrs threshold. ', 'Timestamp alert', {
+                this.$alert('Invalid proof generation of covid records. ', 'Invalid Proof', {
                   confirmButtonText: 'OK',
                   callback: action => {
                     this.$message({
@@ -446,6 +402,60 @@ export default {
         // Country check failed. Whole process aborted.
         this.VerifyResult[keyToUse].status = 'error'
       }
+    },
+    verificationContinued (keyToUse, currentStep, ipfsHashOfCountrysTCdoc, EcDRwithSig) {
+      // Get TC file from IPFS.
+      ipfs.cat(ipfsHashOfCountrysTCdoc).then(tcDataFileFromIPFS => {
+        console.log('JSON File of TC', JSON.parse(tcDataFileFromIPFS.toString()))
+        var tcData = JSON.parse(tcDataFileFromIPFS.toString())
+        // Increment to next step.
+        currentStep += 1
+        keyToUse = Object.keys(this.VerifyResult)[currentStep]
+        this.VerifyResult[keyToUse].status = 'success'
+        // Prepare data H(Proof||hED) to be signed by TC.
+        getHash(EcDRwithSig.encryptedData).then(res => {
+          this.hED = res
+          const dataSignedbyTC = EcDRwithSig.ProofCovidStatus.concat(this.hED)
+          // Hash to sign.
+          getHash(dataSignedbyTC).then(hashedDataOneSigned => {
+            // Verify signature authenticity by recovering signer's address from signature.
+            const signature = EcDRwithSig.sigOfTC.replace(/"/g, '') // Remove the double quotes.
+            const recoveredAddrOfTC = recoveredAddrFromSig(hashedDataOneSigned, signature)
+            console.log('Address recovered: ', recoveredAddrOfTC)
+            // Check if address exist in patient's country's TC file.
+            if (Object.values(tcData).includes(web3.utils.toChecksumAddress(recoveredAddrOfTC))) {
+              // TC signature verification passed.
+              console.log('Signature verification passed.')
+              currentStep += 1
+              keyToUse = Object.keys(this.VerifyResult)[currentStep]
+              this.VerifyResult[keyToUse].status = 'success'
+              this.$notify({
+                title: 'Successful proof',
+                message: 'Successful verification',
+                type: 'success'
+              })
+              this.verifyBtnLoadState = false
+              // this.getUserChoice()
+            } else {
+              currentStep += 1
+              keyToUse = Object.keys(this.VerifyResult)[currentStep]
+              this.VerifyResult[keyToUse].status = 'error'
+              this.verifyBtnLoadState = false
+              console.log('TC signature verification failed.')
+              this.$message.error('TC signature verification failed.')
+              this.$notify.error({
+                title: 'Failed proof',
+                message: 'Sorry! You failed verification.'
+              })
+              this.getUserChoice()
+            }
+          })
+        })
+      }).catch(err => {
+        console.log('IPFS error in getting TC file: ', err)
+        this.$message.error('Oops, Error pulling TC data from IPFS.')
+        this.verifyBtnLoadState = false
+      })
     },
     ipfsInputValidation (input) {
       const count = input.toString().length
