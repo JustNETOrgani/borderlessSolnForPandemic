@@ -22,8 +22,11 @@
                             <el-form-item label="Name of Country" prop="countryName">
                                 <el-input v-model="countryRegistForm.countryName" placeholder="Name of the Country."></el-input>
                             </el-form-item>
-                            <el-form-item label="Country's address" prop="scAddrOfCountry">
-                                <el-input v-model="countryRegistForm.scAddrOfCountry" placeholder="Please input SC address of Country."></el-input>
+                            <el-form-item label="Country's address" prop="addrOfCountry">
+                                <el-input v-model="countryRegistForm.addrOfCountry" placeholder="Please input address of Country."></el-input>
+                            </el-form-item>
+                            <el-form-item label="Address of SC" prop="addrOfDepSC">
+                                <el-input v-model="countryRegistForm.addrOfDepSC" placeholder="Please input SC address of Country."></el-input>
                             </el-form-item>
                             <el-form-item label="Blockchain in use" prop="btcInUse">
                                 <el-select
@@ -64,7 +67,8 @@ export default {
       countryRegistForm: {
         authCheckBox: '',
         countryName: '',
-        scAddrOfCountry: '',
+        addrOfCountry: '',
+        addrOfDepSC: '',
         btcInUse: '',
         tcIPFShash: ''
       },
@@ -78,7 +82,11 @@ export default {
           { required: true, message: 'Please input name of Country.', trigger: 'blur' },
           { min: 2, message: 'Length should be at least 2', trigger: 'blur' }
         ],
-        scAddrOfCountry: [
+        addrOfCountry: [
+          { required: true, message: 'Please input SC address of the Country.', trigger: 'blur' },
+          { min: 20, message: 'Length should be at least 20', trigger: 'blur' }
+        ],
+        addrOfDepSC: [
           { required: true, message: 'Please input SC address of the Country.', trigger: 'blur' },
           { min: 20, message: 'Length should be at least 20', trigger: 'blur' }
         ],
@@ -122,14 +130,15 @@ export default {
     submitForm (formName) {
       if (this.countryRegistForm.authCheckBox === true) {
         if (this.countryNameValidation(this.countryRegistForm.countryName) !== 0) {
-          if (web3.utils.isAddress(this.countryRegistForm.scAddrOfCountry) === true) {
+          if (web3.utils.isAddress(this.countryRegistForm.addrOfCountry) === true && web3.utils.isAddress(this.countryRegistForm.addrOfDepSC) === true) {
             this.$refs[formName].validate(valid => {
               this.registCountryBtnLoadState = true
               if (valid) {
                 console.log('Valid data.')
                 var data = {
                   countryName: this.countryRegistForm.countryName,
-                  scAddrOfCountry: this.countryRegistForm.scAddrOfCountry,
+                  addrOfCountry: this.countryRegistForm.addrOfCountry,
+                  scAddrOfCountry: this.countryRegistForm.addrOfDepSC,
                   btcName: this.countryRegistForm.btcInUse,
                   tcIPFShash: this.countryRegistForm.tcIPFShash
                 }
@@ -142,7 +151,7 @@ export default {
                   const txParams = {
                     from: this.contractDeployerAccount,
                     to: contractAddress,
-                    data: WHOsmartContract.methods.registerCountry(data.btcName, data.countryName, data.scAddrOfCountry, data.tcIPFShash).encodeABI()
+                    data: WHOsmartContract.methods.registerCountry(data.btcName, data.countryName, data.addrOfCountry, data.scAddrOfCountry, data.tcIPFShash).encodeABI()
                   }
                   this.sendTnx(txParams).then(tnxReceipt => {
                     console.log('Transaction receipt: ', tnxReceipt)
