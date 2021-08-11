@@ -21,7 +21,7 @@
             <el-row>
                 <el-steps :active="active" align-center finish-status="success">
                 <el-step title="Step 1" description="Enter and Process data"></el-step>
-                <el-step title="Step 2" description="Get TC's signature"></el-step>
+                <el-step title="Step 2" description="Verify Data & Get TC's signature"></el-step>
                 <el-step title="Step 3" description="Get IPFS hash via QR code"></el-step>
                 <el-step title="Step 4" description="Anchor in blockchain"></el-step>
                 </el-steps>
