@@ -46,19 +46,11 @@
                     </div>
                 </el-col>
             </el-row>
-            <el-row>
-              <el-col :span="5" :offset="1">
-                <p id="computedLabel">Person signature:</p>
-              </el-col>
-              <el-col :span="5" :offset="0">
-                <p id="formattedString">{{sigOnIPFShash}}</p>
-              </el-col>
-            </el-row>
         </div>
         <el-dialog
             title="Borderless COVID-19 Test/Vaccination Status Verification"
             :visible.sync="dialogVisible" width="40%">
-            <span id="IPFShashNotice">Verifying via: {{blindedIPFShash}}</span>
+            <span id="IPFShashNotice">Verifying via IPFS hash: {{blindedIPFShash}}</span>
             <br />
             <span id="BlockchainInUse">Blockchain in use: Ethereum</span>
             <el-steps v-loading="stepLoading" direction="vertical" :active="step">
@@ -101,7 +93,6 @@ export default {
       countryAddr: '',
       blindedIPFShash: '',
       hED: '',
-      sigOnIPFShash: '',
       fullSignature: '',
       currentAddress: '',
       VerifyResult: [],
