@@ -10,6 +10,19 @@ var ABIcountrySC = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: 'string',
+        name: 'deployMsg',
+        type: 'string'
+      }
+    ],
+    name: 'SCdeployment',
+    type: 'event'
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: 'address',
         name: 'TCaddr',
@@ -371,7 +384,7 @@ var ABIcountrySC = [
   }
 ]
 
-var contractAddressCountrySC = '0x886B56E39a09f5b38163bBb41419c33a16107D78'
+var contractAddressCountrySC = '0xb08517232e40ffe27aa708da4126edc424b05a3f'
 
 var suppliedGasCountrySC = 3000000
 

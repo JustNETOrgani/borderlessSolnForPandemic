@@ -10,6 +10,19 @@ var ABI = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: 'string',
+        name: 'deployMsg',
+        type: 'string'
+      }
+    ],
+    name: 'WHOscDeployment',
+    type: 'event'
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: 'address',
         name: 'countryAddr',
@@ -29,7 +42,7 @@ var ABI = [
     anonymous: false,
     inputs: [
       {
-        indexed: true,
+        indexed: false,
         internalType: 'address',
         name: 'countryAddr',
         type: 'address'
@@ -67,7 +80,7 @@ var ABI = [
     anonymous: false,
     inputs: [
       {
-        indexed: true,
+        indexed: false,
         internalType: 'address',
         name: 'countryAddr',
         type: 'address'
@@ -332,7 +345,7 @@ var ABI = [
   }
 ]
 
-var contractAddress = '0x0D351CD36e4E28340B1aCc2f8cA07968A9835D16'
+var contractAddress = '0x5103D9422ce1A942C4ac9380622bFB42Fc59adbD'
 
 var suppliedGas = 3000000
 

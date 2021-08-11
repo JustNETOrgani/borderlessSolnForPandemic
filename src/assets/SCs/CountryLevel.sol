@@ -28,6 +28,7 @@ contract countrySC{
     uint256 totalVaccinated;
     
     // Events begin.
+    event SCdeployment(string deployMsg);
     event patientRegistered(address indexed txInitiator);
     event patientRecordUpdated(address indexed txInitiator);
     event TCregistered(string nameOfTC, address addOfTC);
@@ -41,6 +42,7 @@ contract countrySC{
         totalTested = 0;
         totalRecordUpdate = 0;
         totalVaccinated = 0;
+        emit SCdeployment("Country SC deployed");
     }
     //Creating an access modifier for contractDeployer=>Country.
     modifier HM {

@@ -25,8 +25,9 @@ contract WHOsc {
     stateOfCountry public stateOfTheCountry;
 	
     // Events begin.
-    event countryRegistered(address indexed countryAddr, string countryName);
-    event countryTCsUpdated(address indexed countryAddr);
+    event WHOscDeployment(string deployMsg);
+    event countryRegistered(address countryAddr, string countryName);
+    event countryTCsUpdated(address countryAddr);
     event countryRevoked(address indexed countryAddr, string reason);
     event countryReActivated(address indexed countryAddr, string reason);
     
@@ -35,6 +36,7 @@ contract WHOsc {
         WHOdir = msg.sender;
 		stateOfTheCountry = stateOfCountry.Holding;
 		numOfCountriesRegistered = 0;
+		emit WHOscDeployment("WHO SC deployed");
     }
     
     // Creating an access modifier for contractDeployer
