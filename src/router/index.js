@@ -112,6 +112,15 @@ const routes = [
       userType: 'Country'
     }
   },
+  {
+    path: '/Country_level/statistics',
+    name: 'countryStats',
+    component: () => import('@/views/Country_level/statistics.vue'),
+    meta: {
+      requireAuth: true,
+      userType: 'Country'
+    }
+  },
   // Testing Center.
   {
     path: '/Country_level/TC/login',
