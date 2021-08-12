@@ -65,6 +65,24 @@
                 </template>
             </el-steps>
         </el-dialog>
+        <el-dialog title="Claims" :visible.sync="claimTypeFormVisibleState" width="45%">
+          <el-form :model="claimTypeForm">
+              <el-form-item label="Statements:" :label-width="formLabelWidth">
+                <span>Default</span>
+                <el-checkbox v-model="claimTypeForm.greenCode" label="Negative/Vaccinated" border size="mini"></el-checkbox>
+                <el-checkbox v-model="claimTypeForm.yellowCode" label="Negative/Not vaccinated" border size="mini"></el-checkbox>
+              </el-form-item>
+              <span>Others</span>
+              <el-checkbox-group v-model="otherProofsChkBox" size="mini" disabled>
+                <el-checkbox label="Negative/Specific vaccine" border></el-checkbox>
+                <el-checkbox label="Negative/Vaccine jab" border></el-checkbox>
+              </el-checkbox-group>
+          </el-form>
+          <span slot="footer" class="dialog-footer">
+              <el-button @click="backToPrvPg()">Cancel</el-button>
+              <el-button type="primary" @click="claims()">Confirm</el-button>
+          </span>
+        </el-dialog>
         <div id="overlay">
           <div id="qrCodeScanning" width="500px"></div>
           <el-button type="primary" @click="qrCodeDivDisappear()">Done</el-button>
@@ -90,6 +108,13 @@ export default {
         hashedID: '',
         addOfPatientCountry: ''
       },
+      claimTypeForm: {
+        greenCode: true,
+        yellowCode: true
+      },
+      otherProofsChkBox: [],
+      formLabelWidth: '140px',
+      claimTypeFormVisibleState: false,
       countryAddr: '',
       blindedIPFShash: '',
       hED: '',
@@ -130,6 +155,7 @@ export default {
       this.getAccount().then(accounts => {
         this.currentAddress = accounts[0]
         console.log('Current account: ', this.currentAddress)
+        this.claimTypeFormVisibleState = true
       })
     }
   },
@@ -156,8 +182,13 @@ export default {
         myRoot.accountChangeStatus = true
       })
     },
+    claims () {
+      // TODO...more responsive to changing times.
+      this.userAssertions = { green: ['Negative', 'vaccinated'], yellow: ['Negative', 'Not Vaccinated'] }
+      this.claimTypeFormVisibleState = false
+    },
     backToPrvPg () {
-      this.$router.push('/')
+      this.$router.push('verifierLanding')
     },
     resetForm (formName) {
       this.$refs[formName].resetFields()
