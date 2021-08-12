@@ -74,6 +74,10 @@
                 <el-checkbox label="Negative/Specific vaccine" border></el-checkbox>
                 <el-checkbox label="Negative/Vaccine jab" border></el-checkbox>
               </el-checkbox-group>
+              <br>
+              <el-form-item label="Time limit (Hours)" :label-width="formLabelWidth">
+                <el-input-number v-model="claimTypeForm.timeAllowed" @change="handleChange" :min="24" ></el-input-number>
+              </el-form-item>
           </el-form>
           <span slot="footer" class="dialog-footer">
               <el-button @click="backToPrvPg()">Cancel</el-button>
@@ -105,8 +109,10 @@ export default {
       },
       claimTypeForm: {
         greenCode: true,
-        yellowCode: true
+        yellowCode: true,
+        timeAllowed: 72
       },
+      adjustableTime: null,
       otherProofsChkBox: [],
       formLabelWidth: '140px',
       claimTypeFormVisibleState: false,
@@ -191,7 +197,11 @@ export default {
     claims () {
       // TODO...more responsive to changing times.
       this.userAssertions = { green: ['Negative', 'vaccinated'], yellow: ['Negative', 'Not Vaccinated'] }
+      this.adjustableTime = this.claimTypeForm.timeAllowed
       this.claimTypeFormVisibleState = false
+    },
+    handleChange (value) {
+      console.log('Time allowed changed to:', value)
     },
     backToPrvPg () {
       this.$router.push('verifierLanding')
@@ -321,7 +331,7 @@ export default {
           // Check timestamp.
           const timeStamp = EcDRwithSig.timeStamp
           const daysElapsed = this.verifyTimestampValidity(timeStamp)
-          if (daysElapsed <= 72) {
+          if (daysElapsed <= this.adjustableTime) {
             // Timestamp is within last 72 hours.
             // Increment step.
             currentStep += 1
