@@ -25,7 +25,6 @@ contract countrySC{
     stateOfTC public stateOfTheTC;
     uint256 totalTested;
     uint256 totalRecordUpdate;
-    uint256 totalVaccinated;
     
     // Events begin.
     event SCdeployment(string deployMsg);
@@ -41,7 +40,6 @@ contract countrySC{
         stateOfTheTC = stateOfTC.Holding;
         totalTested = 0;
         totalRecordUpdate = 0;
-        totalVaccinated = 0;
         emit SCdeployment("Country SC deployed");
     }
     //Creating an access modifier for contractDeployer=>Country.
@@ -101,29 +99,23 @@ contract countrySC{
     }
     
     // Function to register patient.
-    function patientRegistration(bytes32 _PHID, bytes32 _hIPFShash, bytes32 _proofOfCovidStatus, uint8 _vState) TCsOnly public returns (bool result){
+    function patientRegistration(bytes32 _PHID, bytes32 _hIPFShash, bytes32 _proofOfCovidStatus) TCsOnly public returns (bool result){
         // AA checks.
         require (TC[msg.sender].tcState==stateOfTC.Activated, 'Access denied');// Check msg.sender is part of Activated TCs.
         require (patient[_PHID].PHID == "", "PHID already exist");
         patient[_PHID] = patientStruct(_PHID, _hIPFShash, _proofOfCovidStatus);
         totalTested += 1;
-        if (_vState == 1) {
-            totalVaccinated += 1;
-        }
         emit patientRegistered(msg.sender);
         return true;
     }
     //  Fucntion to update a person's Covid-19 test status by an approvedHealthFacility.
-    function patientRecordUpdate(bytes32 _PHID, bytes32 _hIPFShash, bytes32 _proofOfCovidStatus, uint8 _vState) TCsOnly public returns (bool result){
+    function patientRecordUpdate(bytes32 _PHID, bytes32 _hIPFShash, bytes32 _proofOfCovidStatus) TCsOnly public returns (bool result){
         // AA checks.
         require (TC[msg.sender].tcState==stateOfTC.Activated, 'Access denied');// Check msg.sender is part of Activated TCs.
         require(patient[_PHID].PHID == _PHID, 'Invalid Hashed Identifier');
         // Update person records
         patient[_PHID].hIPFShash = _hIPFShash;
         patient[_PHID].proofOfCovidStatus = _proofOfCovidStatus;
-        if (_vState == 1) {
-            totalVaccinated += 1;
-        }
         totalRecordUpdate +=1;
         emit patientRecordUpdated(msg.sender);
         return true;
@@ -139,7 +131,7 @@ contract countrySC{
         }
     }
     // Function to get public info.
-    function getPublicStatistics() public view returns (uint256 Total_tested, uint256 UpdatedRecords, uint256 TotalVaccinated) {
-        return (totalTested, totalRecordUpdate, totalVaccinated);
+    function getPublicStatistics() public view returns (uint256 Total_tested, uint256 UpdatedRecords) {
+        return (totalTested, totalRecordUpdate);
     }
 }

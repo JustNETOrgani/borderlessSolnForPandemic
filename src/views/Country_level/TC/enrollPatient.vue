@@ -476,10 +476,6 @@ export default {
     anchorOnchain () {
       if (this.processDataBtnState === true) {
         // Check all needed smart contract-related data have been acquired.
-        var vState = 0
-        if (this.onboardPerson.vStatus === 'vaccinated') {
-          vState = 1
-        }
         console.log('Sending to blockchain')
         this.submitLoadBtn = true
         var countrySC = new web3.eth.Contract(ABIcountrySC, contractAddressCountrySC, { defaultGas: suppliedGasCountrySC })
@@ -490,7 +486,7 @@ export default {
           const txParams = {
             from: this.currentEthAddress,
             to: contractAddressCountrySC,
-            data: countrySC.methods.patientRegistration(this.HashedID, this.hIPFShash, this.mkRoot, vState).encodeABI()
+            data: countrySC.methods.patientRegistration(this.HashedID, this.hIPFShash, this.mkRoot).encodeABI()
           }
           this.sendTnx(txParams).then(tnxReceipt => {
             console.log('Transaction receipt: ', tnxReceipt)

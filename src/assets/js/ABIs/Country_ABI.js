@@ -157,11 +157,6 @@ var ABIcountrySC = [
         internalType: 'uint256',
         name: 'UpdatedRecords',
         type: 'uint256'
-      },
-      {
-        internalType: 'uint256',
-        name: 'TotalVaccinated',
-        type: 'uint256'
       }
     ],
     stateMutability: 'view',
@@ -206,11 +201,6 @@ var ABIcountrySC = [
         internalType: 'bytes32',
         name: '_proofOfCovidStatus',
         type: 'bytes32'
-      },
-      {
-        internalType: 'uint8',
-        name: '_vState',
-        type: 'uint8'
       }
     ],
     name: 'patientRecordUpdate',
@@ -240,11 +230,6 @@ var ABIcountrySC = [
         internalType: 'bytes32',
         name: '_proofOfCovidStatus',
         type: 'bytes32'
-      },
-      {
-        internalType: 'uint8',
-        name: '_vState',
-        type: 'uint8'
       }
     ],
     name: 'patientRegistration',
