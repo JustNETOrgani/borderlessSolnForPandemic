@@ -1,4 +1,10 @@
 # covid19borderless
+A COVID-19 and future pandemics global testing and vaccination solution.
+
+
+## Project Dependencies
+A running instance of Ethereum blockchain (Example: Ganache).
+Metamask
 
 ## Project setup
 ```
