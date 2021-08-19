@@ -3,8 +3,7 @@ A COVID-19 and future pandemics global testing and vaccination solution.
 
 
 ## Project Dependencies
-A running instance of Ethereum blockchain (Example: Ganache).
-Metamask
+A running instance of Ethereum blockchain (Example: Ganache) and Metamask
 
 ## Project setup
 ```
