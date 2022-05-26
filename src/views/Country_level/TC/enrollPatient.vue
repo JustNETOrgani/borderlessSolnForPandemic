@@ -486,7 +486,7 @@ export default {
           const txParams = {
             from: this.currentEthAddress,
             to: contractAddressCountrySC,
-            data: countrySC.methods.patientRegistration(this.HashedID, this.hIPFShash, this.mkRoot).encodeABI()
+            data: countrySC.methods.patientRegistration(this.HashedID, this.hIPFShash).encodeABI()
           }
           this.sendTnx(txParams).then(tnxReceipt => {
             console.log('Transaction receipt: ', tnxReceipt)

@@ -359,7 +359,7 @@ export default {
                 this.VerifyResult[keyToUse].status = 'success'
                 const hIPFShash = hashOfIPFShash
                 // Continue verification on-chain.
-                this.continueVerificationOnchain(currentStep, hIPFShash, this.merkleRoot, hashedID)
+                this.continueVerificationOnchain(currentStep, hIPFShash, hashedID)
               })
             } else {
               this.$alert('Invalid proof generation of covid records. ', 'Invalid Proof', {
@@ -398,7 +398,7 @@ export default {
         this.verifyBtnLoadState = false
       })
     },
-    continueVerificationOnchain (currentStep, hIPFShash, merkeRoot, hashedID) {
+    continueVerificationOnchain (currentStep, hIPFShash, hashedID) {
       // Verify on-chain
       console.log('Verifying on-chain.')
       var countrySC = new web3.eth.Contract(ABIcountrySC, contractAddressCountrySC, { defaultGas: suppliedGasCountrySC })// End of ABi Code from Remix.
@@ -408,10 +408,10 @@ export default {
       // Smart contract and other logic continues.
       // This is call operation. Any account can be used. It cost zero Eth.
       // Run loop on pre-defined assertions.
-      countrySC.methods.verifyUserStatus(hIPFShash, hashedID, merkeRoot[0]).call({ from: this.currentAddress }).then(resOne => {
+      countrySC.methods.verifyUserStatus(hIPFShash, hashedID).call({ from: this.currentAddress }).then(resOne => {
         // console.log('First response from Contract: ', resOne)
         this.scResponse.push(resOne)
-        countrySC.methods.verifyUserStatus(hIPFShash, hashedID, merkeRoot[1]).call({ from: this.currentAddress }).then(resTwo => {
+        countrySC.methods.verifyUserStatus(hIPFShash, hashedID).call({ from: this.currentAddress }).then(resTwo => {
           // console.log('Second response from Contract: ', resTwo)
           this.scResponse.push(resTwo)
           if (this.scResponse[0] === true || this.scResponse[1] === true) {

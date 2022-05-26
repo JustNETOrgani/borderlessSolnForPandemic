@@ -7,7 +7,6 @@ contract countrySC{
     struct patientStruct{
         bytes32 PHID; // Hashed Identifier of user.
         bytes32 hIPFShash; // Hash of the IPFS hash. // Delinks on-chain connection to IPFS.
-        bytes32 proofOfCovidStatus; // Contains Merkle root hash.
     }
     struct TCs{
         string TC_name; // Name of Testing Center
@@ -99,31 +98,30 @@ contract countrySC{
     }
     
     // Function to register patient.
-    function patientRegistration(bytes32 _PHID, bytes32 _hIPFShash, bytes32 _proofOfCovidStatus) TCsOnly public returns (bool result){
+    function patientRegistration(bytes32 _PHID, bytes32 _hIPFShash) TCsOnly public returns (bool result){
         // AA checks.
         require (TC[msg.sender].tcState==stateOfTC.Activated, 'Access denied');// Check msg.sender is part of Activated TCs.
         require (patient[_PHID].PHID == "", "PHID already exist");
-        patient[_PHID] = patientStruct(_PHID, _hIPFShash, _proofOfCovidStatus);
+        patient[_PHID] = patientStruct(_PHID, _hIPFShash);
         totalTested += 1;
         emit patientRegistered(msg.sender);
         return true;
     }
     //  Fucntion to update a person's Covid-19 test status by an approvedHealthFacility.
-    function patientRecordUpdate(bytes32 _PHID, bytes32 _hIPFShash, bytes32 _proofOfCovidStatus) TCsOnly public returns (bool result){
+    function patientRecordUpdate(bytes32 _PHID, bytes32 _hIPFShash) TCsOnly public returns (bool result){
         // AA checks.
         require (TC[msg.sender].tcState==stateOfTC.Activated, 'Access denied');// Check msg.sender is part of Activated TCs.
         require(patient[_PHID].PHID == _PHID, 'Invalid Hashed Identifier');
         // Update person records
         patient[_PHID].hIPFShash = _hIPFShash;
-        patient[_PHID].proofOfCovidStatus = _proofOfCovidStatus;
         totalRecordUpdate +=1;
         emit patientRecordUpdated(msg.sender);
         return true;
     }
     // Function for status verification.
-    function verifyUserStatus(bytes32 hIPFShash, bytes32 _PHID, bytes32 _proofOfCovidStatus) public view returns (bool) {
+    function verifyUserStatus(bytes32 hIPFShash, bytes32 _PHID) public view returns (bool) {
         patientStruct memory ps = patient[_PHID];
-        if (ps.hIPFShash==hIPFShash && ps.proofOfCovidStatus==_proofOfCovidStatus) {
+        if (ps.hIPFShash==hIPFShash) {
             return true;
         }
         else {
